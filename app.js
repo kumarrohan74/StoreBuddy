@@ -6,6 +6,14 @@ const path = require('path');
 const addProduct = require('./api/addProduct');
 const addCategory = require('./api/addCategory');
 const addSubCategory = require('./api/addSubCategory');
+const addSKU = require('./api/addSKU');
+const addCustomer = require('./api/addCustomer');
+const addWarehouse = require('./api/addWarehouse');
+const addHub = require('./api/addHub');
+const addStore = require('./api/addStore');
+const addCity = require('./api/addCity');
+const addLocality = require('./api/addLocality');
+
 
 //connection to database
 mongoose.connect('mongodb://localhost/StoreBuddy')
@@ -82,10 +90,127 @@ app.post('/addsubcategory',(req,res) => {
    
 });
 
+/*  ---------------------------------------------------SKU------------------------------------------*/
+
+app.post('/addskunitpage',(req,res) => {
+    res.redirect('addsku.html');
+});
+
+app.post('/addsku',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addSKU.createSKU(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
 
 
+/*  ---------------------------------------------------Customer------------------------------------------*/
+
+app.post('/addcustomerpage',(req,res) => {
+    res.redirect('addcustomer.html');
+});
+
+app.post('/addcustomer',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addCustomer.createCustomer(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
 
 
+/*  ---------------------------------------------------Warehouse------------------------------------------*/
+
+app.post('/addwarehousepage',(req,res) => {
+    res.redirect('addwarehouse.html');
+});
+
+app.post('/addwarehouse',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addWarehouse.createWarehouse(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+/*  ---------------------------------------------------Hub------------------------------------------*/
+
+
+app.post('/addhubpage',(req,res) => {
+    res.redirect('addhub.html');
+});
+
+app.post('/addhub',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addHub.createHub(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+/*  ---------------------------------------------------Store------------------------------------------*/
+
+
+app.post('/addstorepage',(req,res) => {
+    res.redirect('addstore.html');
+});
+
+app.post('/addstore',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addStore.createStore(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+/*  ---------------------------------------------------City------------------------------------------*/
+
+
+app.post('/addcitypage',(req,res) => {
+    res.redirect('addcity.html');
+});
+
+app.post('/addcity',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addCity.createCity(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+/*  ---------------------------------------------------Locality------------------------------------------*/
+
+
+app.post('/addlocalitypage',(req,res) => {
+    res.redirect('addlocality.html');
+});
+
+app.post('/addlocality',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addLocality.createLocality(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
 
 
 
