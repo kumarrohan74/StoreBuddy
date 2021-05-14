@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add City</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <h1>Add City</h1>
+    <form action="/addcity" method="POST">
+        <div class="row">
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                City ID <input 
+                     type="text"
+                     name="cityid"
+                     id="city_id"
+                     class="form-control "
+                     placeholder="Enter City Id"
+                     style="width:25%"
+                 />
+             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                City Name<input 
+                type="text"
+                name="cityname"
+                id="city_name"
+                class="form-control "
+                placeholder="Enter City Name"
+                style="width:25%"
+            /></div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Partner ID <input 
+                type="text"
+                name="partnerid"
+                id="city_partner_id"
+                class="form-control "
+                placeholder="Enter Partner id"
+                style="width:25%"
+            /></div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Description <input 
+                type="text"
+                name="citydesc"
+                id="city_desc"
+                class="form-control "
+                placeholder="Enter Description"
+                style="width:25%"
+            /></div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Status <input 
+                type="text"
+                name="citystatus"
+                id="city_status"
+                class="form-control "
+                placeholder="Enter Status"
+                style="width:25%"
+            /></div>
+        </div>
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-primary" style="margin-left: 3%;">Add City</button>
+        </div>
+        </div>
+    </form>
+    
+   
+</body>
+</html>

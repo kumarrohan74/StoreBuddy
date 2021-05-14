@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add product</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <h1>Add Sub Category</h1>
+    <form action="/addsubcategory" method="POST">
+        <div class="row">
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Sub Category Name <input 
+                     type="text"
+                     name="subcategoryName"
+                     id="subcategory_name"
+                     class="form-control "
+                     placeholder="Enter Sub Category Name"
+                     style="width:25%"
+                 />
+             </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Sub Category Image<input 
+                type="text"
+                name="subcategoryimage"
+                id="subcategory_image"
+                class="form-control "
+                placeholder="Enter Sub Category Image"
+                style="width:25%"
+            /></div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Status <input 
+                type="text"
+                name="subcategorystatus"
+                id="subcategory_status"
+                class="form-control "
+                placeholder="Enter Status"
+                style="width:25%"
+            /></div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Sub Category Priority <input 
+                type="text"
+                name="scpriority"
+                id="subcategory_priority"
+                class="form-control "
+                placeholder="Enter Priority"
+                style="width:25%"
+            /></div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group col-md-12">
+                Sub Category Description <input 
+                type="text"
+                name="subcatdesc"
+                id="subcategory_descrption"
+                class="form-control "
+                placeholder="Enter Description"
+                style="width:25%"
+            /></div>
+        </div>
+        
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-primary" style="margin-left: 3%;">Add Sub Category</button>
+        </div>
+        </div>
+    </form>
+    
+   
+</body>
+</html>
