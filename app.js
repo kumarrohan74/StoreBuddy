@@ -13,7 +13,8 @@ const addHub = require('./api/addHub');
 const addStore = require('./api/addStore');
 const addCity = require('./api/addCity');
 const addLocality = require('./api/addLocality');
-
+const addAddress = require('./api/addAddress');
+const addOrder = require('./api/addOrder');
 
 //connection to database
 mongoose.connect('mongodb://localhost/StoreBuddy')
@@ -212,6 +213,42 @@ app.post('/addlocality',(req,res) => {
    
 });
 
+
+/*  ---------------------------------------------------Address------------------------------------------*/
+
+
+app.post('/addaddresspage',(req,res) => {
+    res.redirect('addaddress.html');
+});
+
+app.post('/addaddress',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addAddress.createAddress(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+
+/*  ---------------------------------------------------Order------------------------------------------*/
+
+
+app.post('/addorderpage',(req,res) => {
+    res.redirect('addorder.html');
+});
+
+app.post('/addorder',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addOrder.createOrder(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
 
 
 
