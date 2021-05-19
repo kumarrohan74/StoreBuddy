@@ -1,4 +1,5 @@
 //required files
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -15,6 +16,8 @@ const addCity = require('./api/addCity');
 const addLocality = require('./api/addLocality');
 const addAddress = require('./api/addAddress');
 const addOrder = require('./api/addOrder');
+var cors = require('cors');
+
 
 //connection to database
 mongoose.connect('mongodb://localhost/StoreBuddy')
@@ -23,12 +26,14 @@ mongoose.connect('mongodb://localhost/StoreBuddy')
 
 const app = express();
 
+
+app.use(cors());
 //assigning port no.
 const port = process.env.PORT || 5000;
 app.listen(port,console.log(`server started on ${port}`));
 
 //middleware body parser
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
 
 //static folder
 app.use(express.static(path.join(__dirname,'public')));
@@ -62,14 +67,29 @@ app.post('/addcategorypage',(req,res) => {
 
 //Add Category API
 app.post('/addcategory',(req,res) => {
+ 
+   console.log(req.body);
     if(res.statusCode === 200)
             {
-                addCategory.createCategory(req.body);
+                addCategory.createCategory(req.body.inputs);
                 res.redirect('success.html');
             }
-    console.log(req.body);
+    
+    
+    
+    
     
 });
+
+app.get('/getcategory', (req,res) => {
+    var data;
+    function getCatData(res)
+    {
+        console.log(res);
+        
+    }
+    addCategory.getCategory().then(result => res.json(result)).catch(err => console.log("error"));
+})
 
 
 
