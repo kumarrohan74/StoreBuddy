@@ -16,6 +16,7 @@ const addCity = require('./api/addCity');
 const addLocality = require('./api/addLocality');
 const addAddress = require('./api/addAddress');
 const addOrder = require('./api/addOrder');
+const addBrand = require('./api/addBrand');
 var cors = require('cors');
 
 
@@ -74,31 +75,15 @@ app.post('/addcategory',(req,res) => {
                 addCategory.createCategory(req.body.inputs);
                 res.redirect('success.html');
             }
-    
-    
-    
-    
-    
 });
 
 app.get('/getcategory', (req,res) => {
-    var data;
-    function getCatData(res)
-    {
-        console.log(res);
-        
-    }
     addCategory.getCategory().then(result => res.json(result)).catch(err => console.log("error"));
 })
 
 
 
 /*  ---------------------------------------------------Sub Category------------------------------------------*/
-
-//Add Subcategory Page
-app.post('/addsubcategorypage',(req,res) => {
-    res.redirect('addsubcategory.html');
-});
 
 //Add Subcategory API
 app.post('/addsubcategory',(req,res) => {
@@ -110,6 +95,10 @@ app.post('/addsubcategory',(req,res) => {
     console.log(req.body);
    
 });
+
+app.get('/getsubcategory', (req,res) => {
+    addSubCategory.getSubCategory().then(result => res.json(result)).catch(err => console.log("error"));
+})
 
 /*  ---------------------------------------------------SKU------------------------------------------*/
 
@@ -270,11 +259,27 @@ app.post('/addorder',(req,res) => {
    
 });
 
+/*  ---------------------------------------------------Brand------------------------------------------*/
 
 
-app.post('/getproduct',(req,res) => {
-    const products_ = addProduct.getProducts();
+app.post('/addbrandpage',(req,res) => {
+    res.redirect('addbrand.html');
 });
+
+app.post('/addbrand',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addBrand.createBrand(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+
+
+
 
 
 
