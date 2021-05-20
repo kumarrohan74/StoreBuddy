@@ -59,21 +59,7 @@ const dropdwonstyle = {
     padding: '10px 0px 0px 0px',
 }
 
-const productCategory = [
-    {
-        Name: 'Add Category ',
-        Id: 0,
-        State: 0,
-    },
-    {
-        Name: 'Category  1',
-        Id: 1,
-    },
-    {
-        Name: 'Category  2',
-        Id: 2,
-    },
-]
+
 
 const productSubcategory = [
     {
@@ -107,20 +93,48 @@ const productBrand = [
     },
 ]
 
-function productCategorysList() {
-    return (productCategory.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
-}
 
-function productSubcategoryList() {
-    return (productSubcategory.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
-}
-
-function productBrandList() {
-    return (productBrand.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
-}
 
 
 const AddProducts = () => {
+    const [isLoadingCategory, setIsLoadingCategory] = React.useState(false);
+    const [isLoadingSubCategory, setIsLoadingSubCategory] = React.useState(false);
+    const [categoryData, setCategoryData] = React.useState([]);
+    const [subCategoryData, setSubCategoryData] = React.useState([]);
+    useEffect(() => {
+        
+        const sendRequest = async () => {
+            const response_category = await fetch("http://localhost:5000/getcategory");
+            const responseData_category = await response_category.json();
+
+            const response_subcategory= await fetch("http://localhost:5000/getsubcategory");
+            const responseData_subcategory = await response_subcategory.json();
+
+            if(JSON.stringify(responseData_category) != JSON.stringify(categoryData) && JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData))
+            {
+                setCategoryData(responseData_category);
+                setIsLoadingCategory(true);
+                setSubCategoryData(responseData_subcategory);
+                setIsLoadingSubCategory(true);
+            }
+
+           /*if(JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData))
+            {
+                setSubCategoryData(responseData_subcategory);
+                setIsLoadingSubCategory(true);
+            }*/
+        };
+        sendRequest();
+
+    });
+
+    const addNewCatButton = [
+        {
+            category_name : "Add New",
+            Id: 0,
+            State: 0,
+        }
+    ];
 
     const [formData, setformData] = React.useState({
         productName: "",
@@ -135,6 +149,32 @@ const AddProducts = () => {
         productSubcategory: "",
         productBrand: "",
     })
+
+    
+    var productCategory,productSubCategory ;
+    if(JSON.stringify(productCategory) != JSON.stringify(categoryData))
+    {
+        console.log(categoryData);
+        productCategory = categoryData;
+    }
+
+    if(JSON.stringify(productSubCategory) != JSON.stringify(subCategoryData))
+    {
+        productSubCategory = subCategoryData;
+    }
+    
+
+    function productCategorysList() {
+        return (isLoadingCategory && addNewCatButton.concat(productCategory).map(data => ({ label: data.category_name, value: data.Id, State: data.State })))
+    }
+    
+    function productSubcategoryList() {
+        return (isLoadingSubCategory && productSubCategory.map(data => ({ label: data.subcategory_name, value: data.Id, State: data.State })))
+    }
+    
+    function productBrandList() {
+        return (productBrand.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
+    }
 
     function SubmitButton() {
         return  <Button type="submit" variant="contained" color="primary">
@@ -166,11 +206,13 @@ const AddProducts = () => {
             [event.target.name]: event.target.value,
         });
     }
+    
 
     function handleSubmit() {
         console.log(formData);
         console.log(optionSelectData);
     };
+
 
     const classes = useStyles();
     const history = useHistory();

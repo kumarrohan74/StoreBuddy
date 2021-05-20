@@ -24,7 +24,9 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useTheme } from "@material-ui/core/styles";
 
-var data = {};
+import { useEffect } from "react";
+import { useLocation,useHistory} from "react-router-dom";
+
 const useStyles = makeStyles(theme => ({
     button: {
         // margin: '0px 400px 0px 0px'
@@ -42,39 +44,38 @@ const useStyles = makeStyles(theme => ({
         // height: '400px'
     },
 }));
-var categoryList;
-const PrdoductCategory = ({message,variant}) => {
-    
-    
-    const classes = useStyles();
-    var getData = [];
+
+let addingCategory = {};
+const PrdoductCategory = () => {
+    const location = useLocation();
+    const history = useHistory();
     const [open, setOpen] = React.useState(false);
     const [inputs, setInputs] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(false);
     const [categoryData, setCategoryData] = React.useState([]);
-
-      /* fetch("http://localhost:5000/getcategory").then(res => {
-           if(res.ok){
-               return res.json();
-           }
-       }).then(jsonRes => console.log(jsonRes)); */
-
-    React.useEffect( () => {
+    useEffect(() => {
+        addingCategory = location.state;
+        if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
+            setOpen(true);
+        }
         const sendRequest = async () => {
             const response = await fetch("http://localhost:5000/getcategory");
             const responseData = await response.json();
-            setCategoryData(responseData);
-            setIsLoading(true);
+            if(JSON.stringify(responseData) !=JSON.stringify(categoryData))
+            {
+                setCategoryData(responseData);
+                setIsLoading(true);
+            }
         };
         sendRequest();
-        
-    })
-      
-   
+
+    }, [location]);
+
+    const classes = useStyles();
     
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-    
+
     const tableheadstyle = {
         boder: '1px solid red',
     }
@@ -89,6 +90,9 @@ const PrdoductCategory = ({message,variant}) => {
     }
 
     function handleClose() {
+        if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
+            history.push('/products/addproduct');
+        }
         setOpen(false);
     }
 
@@ -106,16 +110,10 @@ const PrdoductCategory = ({message,variant}) => {
             console.log("Something went wrong. Plase try again later");
         });
         
+        setOpen(false);
     }
 
-    const productList = [
-        {
-            name:'rohan',
-            age:29
-        }
-    ];
 
-    
     return (
         <Card elevation={3} className="pt-20 mb-24">
             <div className="mb-sm-30">
@@ -161,12 +159,8 @@ const PrdoductCategory = ({message,variant}) => {
                                 <input
                                     className="mb-16 w-100"
                                     type="text"
-                                    name="categoryimage"
-                                    id="category_image"
-                                    value={inputs.categoryImgURL || ''}
-                                    onChange={e => setInputs({ ...inputs, categoryImgURL: e.target.value })}
                                 />
-                                
+
                             </Grid>
                             <Grid item lg={6} md={6} sm={12} xs={12}>
                                 <label>Category Priority</label>
@@ -185,13 +179,10 @@ const PrdoductCategory = ({message,variant}) => {
                                     id="contained-button-file"
                                     multiple
                                     type="file"
-                                    name="imgupload"
-                                    id="img_upload"
-                                    value={inputs.ImgUpload || ''}
-                                    onChange={e => setInputs({ ...inputs, ImgUpload: e.target.value })}
+
                                 />
                                 <label htmlFor="contained-button-file">
-                                    <Button  className="mb-16 w-100"
+                                    <Button className="mb-16 w-100"
                                         variant="contained"
                                         component="span" >
                                         Upload
@@ -219,62 +210,64 @@ const PrdoductCategory = ({message,variant}) => {
                         <TableCell className="px-24" colSpan={2}>
                                 Sl No.
                             </TableCell>
-                            <TableCell className="px-24" colSpan={2}>
-                                Name
-                            </TableCell>
-
-                            <TableCell className="px-0" colSpan={4}>
+                            
+                            <TableCell className="px-0" colSpan={2}>
+                                Category Name
+              </TableCell>
+                            <TableCell className="px-0" colSpan={2}>
                                 Image
               </TableCell>
                             <TableCell className="px-0" colSpan={2}>
                                 Status
               </TableCell>
-                            <TableCell className="px-0" colSpan={1}>
+                            <TableCell className="px-0" colSpan={2}>
                                 Priority
               </TableCell>
-                            <TableCell className="px-0" colSpan={1}>
-                                Edit
+                            <TableCell className="px-0" colSpan={2}>
+                                Actions
               </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {isLoading && categoryData.map((category, index) => (
                             <TableRow key={index}>
-                                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                                    {index + 1}
+                                <TableCell className="px-0 capitalize" align="left" colSpan={2}>
+                                {index + 1}
                                 </TableCell>
                                 <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                                    {category.category_name}
+                                {category.category_name}
                                 </TableCell>
-                                <TableCell className="px-0 capitalize" colSpan={4} align="center">
+                                <TableCell className="px-0 capitalize" colSpan={2} align="center">
                                     <div className="flex flex-middle">
                                         <img
                                             className="circular-image-small"
                                             
                                             alt={category.category_img}
                                         />
-                                        <p className="m-0 ml-8"></p>
+                                        
                                     </div>
                                 </TableCell>
 
                                 <TableCell className="px-0" align="left" colSpan={2}>
-                                {category.status == 1 ? (
-                                        <small className="border-radius-4 bg-primary text-white px-8 py-2 ">
-                                            Active
-                                        </small>
-                                    ) : (
-                                        <small className="border-radius-4 bg-secondary text-white px-8 py-2 ">
-                                            InActive
-                                        </small>
-                                    )}
-                                    
+                                    {category.status == 1 ? (
+                                       <small className="border-radius-4 bg-primary text-white px-8 py-2 ">
+                                       Active
+                                   </small>
+                               ) : (
+                                   <small className="border-radius-4 bg-secondary text-white px-8 py-2 ">
+                                       InActive
+                                   </small>
+                               )}
                                 </TableCell>
-                                <TableCell className="px-0" colSpan={1}>
-                                    {category.category_priority}
+                                <TableCell className="px-0" colSpan={2}>
+                                {category.category_priority}
                                 </TableCell>
-                                <TableCell className="px-0" colSpan={1}>
+                                <TableCell className="px-0" colSpan={2}>
                                     <IconButton>
                                         <Icon color="primary">edit</Icon>
+                                    </IconButton>
+                                    <IconButton>
+                                        <Icon color="primary">delete</Icon>
                                     </IconButton>
                                 </TableCell>
                             </TableRow>
