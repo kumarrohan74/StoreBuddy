@@ -25,10 +25,10 @@ async function createSubCategory(data)
     const result = await subcategory.save();
     console.log(result);
 }
-async function getSubCategory()
+function getSubCategory()
 {
-    const subcategory = await SubCategory.find();
-    console.log(subcategory);
+    return SubCategory.find();
+    
     
     
 }
