@@ -7,7 +7,8 @@ const subcategorySchema = new mongoose.Schema({
     subcategory_image: String,
     subcategory_status: String,
     subcategory_priority: Number,
-    subcategory_descrption: String,
+    subcategory_description: String,
+    partner_id: Number,
     created_at: {type: Date, default: Date.now }
 });
 
@@ -15,12 +16,15 @@ const subcategorySchema = new mongoose.Schema({
 const SubCategory = mongoose.model('SubCategory', subcategorySchema);
 async function createSubCategory(data)
 {
+    console.log(data);
     const subcategory = new SubCategory({
-        subcategory_name: data.subcategoryName,
+        subcategory_name: data.subCategoryName,
         subcategory_image: data.subcategoryimage,
-        subcategory_status: data.subcategorystatus,
-        subcategory_priority: data.scpriority,
-        subcategory_descrption: data.subcatdesc
+        subcategory_description: data.subCategoryDescription,
+        subcategory_status: 1,
+        partner_id: 3,
+        subcategory_priority: data.subCategoryPriority,
+        
     });
     const result = await subcategory.save();
     console.log(result);
