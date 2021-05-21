@@ -42,29 +42,23 @@ app.use(express.static(path.join(__dirname,'public')));
 
 /*  ---------------------------------------------------Product------------------------------------------*/
 
-//Add Product Page
-app.get('/',(req,res) =>
-{
-   res.redirect('index.html');
-});
-
 //Add Product API
 app.post('/addproduct', (req, res) => {
     console.log(req.body);
     if(res.statusCode === 200)
             {
-                addProduct.createProduct(req.body);
+                addProduct.createProduct(req.body.inputs);
                 res.redirect('success.html');
             }
-    
 });
+
+app.get('/getproduct', (req,res) => {
+    
+    addProduct.getProduct().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
 
 /*  ---------------------------------------------------Category------------------------------------------*/
-
-//Add Category Page
-app.post('/addcategorypage',(req,res) => {
-    res.redirect('addcategory.html');
-});
 
 //Add Category API
 app.post('/addcategory',(req,res) => {
@@ -79,7 +73,7 @@ app.post('/addcategory',(req,res) => {
 
 app.get('/getcategory', (req,res) => {
     addCategory.getCategory().then(result => res.json(result)).catch(err => console.log("error"));
-})
+});
 
 
 
@@ -89,10 +83,10 @@ app.get('/getcategory', (req,res) => {
 app.post('/addsubcategory',(req,res) => {
     if(res.statusCode === 200)
             {
-                addSubCategory.createSubCategory(req.body);
+                addSubCategory.createSubCategory(req.body.inputs);
                 res.redirect('success.html');
             }
-    console.log(req.body);
+   
    
 });
 
