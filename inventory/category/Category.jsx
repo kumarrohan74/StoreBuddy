@@ -1,33 +1,53 @@
-import React, { Component } from "react";
-import { Breadcrumb, SimpleCard } from "matx";
+import React, { useState } from "react";
+import { Breadcrumb } from "matx";
 import { makeStyles } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import axios from 'axios';
 import {
     Card,
     Icon,
     IconButton,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    Button, Fab,
-    Grid
-} from "@material-ui/core";
+    Button,
 
+} from "@material-ui/core";
+import axios from 'axios';
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { useTheme } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
+import { green } from "@material-ui/core/colors";
+import Radio from "@material-ui/core/Radio";
 
 import { useEffect } from "react";
-import { useLocation,useHistory} from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
+
+import Paper from '@material-ui/core/Paper';
+import InputBase from '@material-ui/core/InputBase';
+import DialogContentText from "@material-ui/core/DialogContentText";
+import MaterialTable from 'material-table';
+import ImageUploader from 'react-images-upload';
 
 const useStyles = makeStyles(theme => ({
+
+    root: {
+        padding: '2px 4px',
+        display: 'flex',
+        alignItems: 'center',
+        border: '1px solid silver'
+        // width: 400,
+    },
+    input: {
+        marginLeft: theme.spacing(1),
+        flex: 1,
+    },
+    iconButton: {
+        padding: 10,
+    },
+    divider: {
+        height: 28,
+        margin: 4,
+    },
     button: {
         // margin: '0px 400px 0px 0px'
         float: 'right',
@@ -37,16 +57,25 @@ const useStyles = makeStyles(theme => ({
         float: 'left',
         padding: '0px 0px 0px 10px'
     },
-    input: {
-        display: "none"
-    },
+    // input: {
+    //     display: "none"
+    // },
     dialogPaper: {
         // height: '400px'
     },
+    uploadfile: {
+        width: '440px'
+    },
+    radiobtn: {
+        border: '1px solid silver',
+        paddingLeft: '10px',
+        borderRadius: '4px'
+    }
 }));
 
 let addingCategory = {};
 const PrdoductCategory = () => {
+
     const location = useLocation();
     const history = useHistory();
     const [open, setOpen] = React.useState(false);
@@ -68,32 +97,159 @@ const PrdoductCategory = () => {
             }
         };
         sendRequest();
-
-    }, [location]);
+    }, [location])
 
     const classes = useStyles();
     
-    const theme = useTheme();
-    const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+    const [editDailogOpen, setEditDailogOpen] = React.useState(false);
 
-    const tableheadstyle = {
-        boder: '1px solid red',
-    }
+    const [alertDailog, setAlertDailog] = React.useState(false);
 
-    const heading = {
-        color: 'red',
-        justifyContent: 'center',
-    }
+    const [uploadPicture, setUploadPicture] = React.useState([]);
 
     function handleClickOpen() {
         setOpen(true);
     }
 
     function handleClose() {
-        if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
+        setOpen(false);
+    }
+
+    const [imgUrl, setImageUrl] = React.useState({
+        imageUrl: ''
+    });
+
+    const onDropPrimary = (uploadPictures) => {
+        console.log(uploadPictures)
+        setUploadPicture({
+            ...uploadPicture,
+            uploadPictures
+        });
+    }
+
+    const [editformData, setEditformData] = React.useState({
+        categoryName: '',
+        categoryPriority: '',
+        categoryStatus: '',
+        categoryDescription: '',
+    })
+
+    const [addCategoryform, setAddCategoryform] = React.useState({
+        addcategoryName: '',
+        addcategoryPriority: '',
+        addcategoryDescription: '',
+    })
+
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
+    const GreenRadio = withStyles({
+        root: {
+            color: green[400],
+            "&$checked": {
+                color: green[600]
+            }
+        },
+        checked: {}
+    })(props => <Radio color="default" {...props} />);
+
+    const [selectedValue, setSelectedValue] = React.useState({
+        active: '',
+        inactive: ''
+    });
+
+    function handleChange(event) {
+        if (event.target.value === '1') {
+            setSelectedValue({
+                active: '1',
+            })
+        } else {
+            setSelectedValue({
+                inactive: '0',
+            })
+        }
+    }
+
+    function handleClickOpen() {
+        setOpen(true);
+    }
+
+    function onLoadcategoryAdd(event) {
+        setAddCategoryform({
+            ...addCategoryform,
+            [event.target.name]: event.target.value,
+        })
+    }
+
+    function handleClose() {
+        if ((location.state != null || location.state !== undefined) && (addingCategory != null || addingCategory != undefined)) {
             history.push('/products/addproduct');
         }
         setOpen(false);
+        setEditDailogOpen(false);
+    }
+
+    function onChnageEditFields(event) {
+        setEditformData({
+            ...editformData,
+            [event.target.name]: event.target.value,
+        })
+    }
+
+    function handleClickEditDailogOpen(data) {
+        setEditformData({
+            categoryName: data.name,
+            categoryPriority: data.priority,
+            categoryStatus: data.status,
+            categoryDescription: data.description
+        })
+
+        setImageUrl({
+            imageUrl: data.image
+        })
+
+        if (data.status === 1) {
+            setSelectedValue({
+                active: '1',
+            })
+        } else {
+            setSelectedValue({
+                inactive: '0',
+            })
+        }
+        setEditDailogOpen(true);
+    }
+
+    function onChangeimgUrl(event) {
+        setImageUrl({
+            ...imgUrl,
+            [event.target.name]: event.target.value,
+        })
+    }
+
+    function onloadClearInputField() {
+        setImageUrl({
+            imageUrl: ''
+        })
+    }
+
+    function onLoadEditSubmit() {
+        if (editformData.categoryName === "" || editformData.categoryPriority === "" || editformData.categoryDescription === ""
+            || uploadPicture.length === 0 || editformData.categoryDescription === undefined) {
+            if (imgUrl.imageUrl !== "") {
+                setEditDailogOpen(false);
+                setAlertDailog(false);
+            }else {
+                setEditDailogOpen(true);
+                setAlertDailog(true);
+            }
+        } else {
+            setEditDailogOpen(false);
+        }
+    };
+
+    function alertHandleClose() {
+        setAlertDailog(false);
     }
 
     function handleOnSubmit()
@@ -113,13 +269,78 @@ const PrdoductCategory = () => {
         setOpen(false);
     }
 
+    function handleFormSubmit() {
+        if (uploadPicture.length === 0 || addCategoryform.addcategoryName === "" || addCategoryform.addcategoryPriority === ""
+            || addCategoryform.addcategoryDescription === "") {
+            setOpen(true)
+            setAlertDailog(true);
+        } else {
+            setOpen(false)
+
+            setAddCategoryform({
+                addcategoryName: "",
+                addcategoryPriority: "",
+                addcategoryDescription: "",
+            })
+
+            setImageUrl({
+                imageUrl: ''
+            })
+        }
+    }
+    const data = categoryData;
+
+    const columns = [
+        {
+            title: 'Id', field: 'id',
+        },
+        {
+            title: 'Name', field: 'category_name',
+        },
+        {
+            title: 'Image', field: 'category_image',
+        },
+        {
+            title: 'Description', field: 'category_description',
+        },
+        {
+            title: 'Status', field: 'status',
+        },
+        {
+            title: 'Priority', field: 'category_priority',
+        }
+        
+    ]
+
+    const actions = [
+        {
+            icon: 'add',
+            tooltip: 'Add Category',
+            isFreeAction: true,
+            onClick: (event) => onLoadAddSubCategory()
+        },
+        {
+            icon: 'edit',
+            tooltip: 'edit User',
+            onClick: (event, rowData) => handleClickEditDailogOpen(rowData, event)
+        },
+        {
+            icon: 'delete',
+            tooltip: 'Delete User',
+            onClick: (event, rowData) => alert("You Deleted " + rowData.name)
+        },
+    ]
+
+    function onLoadAddSubCategory() {
+        setOpen(true);
+    }
 
     return (
         <Card elevation={3} className="pt-20 mb-24">
             <div className="mb-sm-30">
                 <Breadcrumb
                     routeSegments={[
-                        { name: "Category", path: "/produscts" },
+                        { name: "Category", path: "/products" },
                         { name: "Inventory" }
                     ]}
                 />
@@ -127,10 +348,10 @@ const PrdoductCategory = () => {
 
             <div>
                 <Card>
-                    <strong className={classes.headerName}>Category List</strong>
+                    {/* <strong className={classes.headerName}>Category List</strong>
                     <Button variant="contained" className={classes.button} color="primary" onClick={handleClickOpen}>
                         Add Category
-                </Button>
+                </Button> */}
                 </Card>
                 <Dialog classes={{ paper: classes.dialogPaper }}
                     fullWidth={true}
@@ -144,9 +365,9 @@ const PrdoductCategory = () => {
                         {"Add Category"}
                     </DialogTitle>
                     <DialogContent>
-                        <Grid container spacing={6}>
-                            <Grid item lg={6} md={6} sm={12} xs={12}>
-                                <label> Category Name</label>
+                        <div className="row">
+                            <div className="col-sm-6">
+                                <label> Category Name <sup>*</sup></label>
                                 <input
                                     className="mb-16 w-100"
                                     type="text"
@@ -155,15 +376,10 @@ const PrdoductCategory = () => {
                                     value={inputs.categoryName || ''}
                                     onChange={e => setInputs({ ...inputs, categoryName: e.target.value })}
                                 />
-                                <label> Category Image Url</label>
-                                <input
-                                    className="mb-16 w-100"
-                                    type="text"
-                                />
+                            </div>
 
-                            </Grid>
-                            <Grid item lg={6} md={6} sm={12} xs={12}>
-                                <label>Category Priority</label>
+                            <div className="col-sm-6">
+                                <label>Category Priority<sup>*</sup></label>
                                 <input
                                     className="mb-16 w-100"
                                     type="text"
@@ -172,110 +388,271 @@ const PrdoductCategory = () => {
                                     value={inputs.categoryPriority || ''}
                                     onChange={e => setInputs({ ...inputs, categoryPriority: e.target.value })}
                                 />
-                                <label>Image Upload</label>
-                                <input
-                                    accept="image/*"
-                                    className={classes.input}
-                                    id="contained-button-file"
-                                    multiple
-                                    type="file"
+                            </div>
 
+                            <div className="col-sm-6">
+                                <label>Description<sup>*</sup></label>
+                                <textarea
+                                    className="mb-16 w-100"
+                                    rows="2"
+                                    id="category_description"
+                                    name="addcategoryDescription"
+                                    value={inputs.categoryDescription || ''}
+                                    onChange={e => setInputs({ ...inputs, categoryDescription: e.target.value })}
                                 />
-                                <label htmlFor="contained-button-file">
-                                    <Button className="mb-16 w-100"
-                                        variant="contained"
-                                        component="span" >
-                                        Upload
-                                     </Button>
-                                </label>
-                            </Grid>
-                        </Grid>
+                            </div>
 
+                            <div className="col-sm-6">
+                                {(() => {
+                                    if (imgUrl.imageUrl.length > 0) {
+                                        return (
+                                            <div>
+                                                <label>Image Url<sup>*</sup></label>
+                                                <Paper component="form" className={classes.root}>
+                                                    {/* <InputBase
+                                                        placeholder="enter image url"
+                                                        value={imgUrl.imageUrl}
+                                                        name="imageUrl"
+                                                        className="mb-16 w-100"
+                                                        onChange={onChangeimgUrl}
+                                                        inputProps={{ 'aria-label': 'Image Url' }}
+                                                    /> */}
+
+                                                    <ImageUploader
+                                                        fileContainerStyle={{
+                                                            padding: "0",
+                                                            border: "1px solid grey",
+                                                        }}
+                                                        withIcon={false}
+                                                        withPreview={true}
+                                                        withLabel={false}
+                                                        singleImage={true}
+                                                        buttonText='Upload image'
+                                                        onChange={onDropPrimary}
+                                                        imgExtension={['.jpg', '.gif', '.png', '.gif']}
+                                                        maxFileSize={5242880}
+                                                    />
+
+                                                    {/* <IconButton
+                                                        className={classes.iconButton} aria-label="search" onClick={() => onloadClearInputField()}>
+                                                        <Icon color="primary" >close</Icon>
+                                                    </IconButton> */}
+                                                </Paper>
+
+                                            </div>
+                                        )
+                                    } else {
+                                        return (
+                                            <div>
+                                                <label>Image Url<sup>*</sup></label>
+                                                <ImageUploader
+                                                    fileContainerStyle={{
+                                                        padding: "0",
+                                                        border: "1px solid grey",
+                                                    }}
+                                                    withIcon={false}
+                                                    withPreview={true}
+                                                    withLabel={false}
+                                                    singleImage={true}
+                                                    buttonText='Upload image'
+                                                    onChange={onDropPrimary}
+                                                    imgExtension={['.jpg', '.gif', '.png', '.gif']}
+                                                    maxFileSize={5242880}
+                                                />
+                                                <br></br>
+                                            </div>
+                                        )
+                                    }
+                                })()}
+                            </div>
+                        </div>
+                        <DialogActions>
+                            <Button onClick={handleClose} variant="contained" color="secondary">
+                                Cancel
+                                    </Button>
+                            <Button onClick={handleOnSubmit} variant="contained" color="primary" autoFocus>
+                                Submit
+                                    </Button>
+                        </DialogActions>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog classes={{ paper: classes.dialogPaper }}
+                    fullWidth={true}
+                    maxWidth={'md'}
+                    fullScreen={fullScreen}
+                    open={editDailogOpen}
+                    onClose={handleClose}
+                    aria-labelledby="responsive-dialog-title"
+                >
+                    <DialogTitle id="responsive-dialog-title">
+                        {"Add Category"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <div className="row">
+                            <div className="col-sm-6">
+                                <label> Category Name<sup>*</sup></label>
+                                <input
+                                    className="mb-16 w-100"
+                                    type="text"
+                                    name="categoryName"
+                                    required={true}
+                                    onChange={onChnageEditFields}
+                                    value={editformData.categoryName}
+                                />
+                            </div>
+
+                            <div className="col-sm-6">
+                                <label> Category Priority <sup>*</sup></label>
+                                <input
+                                    type="text"
+                                    className="mb-16 w-100"
+                                    name="categoryPriority"
+
+                                    onChange={onChnageEditFields}
+                                    value={editformData.categoryPriority}
+                                />
+                            </div>
+                            <div className="col-sm-6">
+                                <label>Description<sup>*</sup></label>
+                                <textarea
+                                    className="mb-16 w-100"
+                                    rows="2"
+
+                                    name="categoryDescription"
+                                    onChange={onChnageEditFields}
+                                    value={editformData.categoryDescription}
+                                />
+                            </div>
+                            <div className="col-sm-6">
+                                <label>Status<sup>*</sup></label>
+                                <div className={classes.radiobtn}>
+                                    <label>Active</label>
+                                    <Radio
+                                        checked={selectedValue.active === '1'}
+                                        onChange={handleChange}
+                                        value={selectedValue.active}
+                                        name="active"
+                                        inputProps={{ "aria-label": "active" }}
+                                    />
+                                    <label>Inactive</label>
+                                    <Radio
+                                        checked={selectedValue.inactive === '0'}
+                                        onChange={handleChange}
+                                        value={selectedValue.inactive}
+                                        name="inactive"
+                                        inputProps={{ "aria-label": "inactive" }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="col-sm-6">
+                                {(() => {
+                                    if (imgUrl.imageUrl.length > 0) {
+                                        return (
+                                            <div>
+                                                <label>Image Url<sup>*</sup></label>
+                                                <Paper component="form" className={classes.root}>
+                                                    <InputBase
+                                                        placeholder="enter image url"
+                                                        value={imgUrl.imageUrl}
+                                                        name="imageUrl"
+                                                        className="mb-16 w-100"
+                                                        onChange={onChangeimgUrl}
+                                                        inputProps={{ 'aria-label': 'Image Url' }}
+                                                    />
+                                                    <IconButton
+                                                        className={classes.iconButton} aria-label="search" onClick={() => onloadClearInputField()}>
+                                                        <Icon color="primary" >close</Icon>
+                                                    </IconButton>
+                                                </Paper>
+
+                                            </div>
+                                        )
+                                    } else {
+                                        return (
+                                            <div>
+                                                <label>Image Upload<sup>*</sup></label><br></br>
+                                                <ImageUploader
+                                                    fileContainerStyle={{
+                                                        padding: "0",
+                                                        border: "1px solid grey",
+                                                    }}
+                                                    withIcon={false}
+                                                    withPreview={true}
+                                                    withLabel={false}
+                                                    singleImage={true}
+                                                    buttonText='Upload image'
+                                                    onChange={onDropPrimary}
+                                                    imgExtension={['.jpg', '.gif', '.png', '.gif']}
+                                                    maxFileSize={5242880}
+                                                /><br></br>
+                                                {/* <label htmlFor="contained-button-file">
+                                                    <Button className={classes.uploadfile}
+                                                        variant="contained"
+                                                        component="span" >
+                                                        Upload
+                                                        </Button>
+                                                </label> */}
+                                            </div>
+                                        )
+                                    }
+                                })()}
+                            </div>
+                        </div>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={handleClose} variant="contained" color="secondary">
                             Cancel
                         </Button>
-                        <Button onClick={handleOnSubmit} variant="contained" color="primary" autoFocus>
+                        <Button onClick={onLoadEditSubmit} variant="contained" color="primary" autoFocus>
                             Submit
+                    </Button>
+                    </DialogActions>
+                </Dialog>
+            </div>
+            <div>
+
+                <Dialog
+                    open={alertDailog}
+                    onClose={alertHandleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                        {"Alert Message"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            Please fill required fields
+                    </DialogContentText>
+                    </DialogContent>
+
+                    <DialogActions>
+                        <Button onClick={alertHandleClose} color="primary" autoFocus>
+                            OK
                     </Button>
                     </DialogActions>
                 </Dialog>
             </div>
 
             <div className="overflow-auto">
-                <Table className="product-table">
-                    <TableHead>
-                        <TableRow>
-                        <TableCell className="px-24" colSpan={2}>
-                                Sl No.
-                            </TableCell>
-                            
-                            <TableCell className="px-0" colSpan={2}>
-                                Category Name
-              </TableCell>
-                            <TableCell className="px-0" colSpan={2}>
-                                Image
-              </TableCell>
-                            <TableCell className="px-0" colSpan={2}>
-                                Status
-              </TableCell>
-                            <TableCell className="px-0" colSpan={2}>
-                                Priority
-              </TableCell>
-                            <TableCell className="px-0" colSpan={2}>
-                                Actions
-              </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {isLoading && categoryData.map((category, index) => (
-                            <TableRow key={index}>
-                                <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                                {index + 1}
-                                </TableCell>
-                                <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                                {category.category_name}
-                                </TableCell>
-                                <TableCell className="px-0 capitalize" colSpan={2} align="center">
-                                    <div className="flex flex-middle">
-                                        <img
-                                            className="circular-image-small"
-                                            
-                                            alt={category.category_img}
-                                        />
-                                        
-                                    </div>
-                                </TableCell>
-
-                                <TableCell className="px-0" align="left" colSpan={2}>
-                                    {category.status == 1 ? (
-                                       <small className="border-radius-4 bg-primary text-white px-8 py-2 ">
-                                       Active
-                                   </small>
-                               ) : (
-                                   <small className="border-radius-4 bg-secondary text-white px-8 py-2 ">
-                                       InActive
-                                   </small>
-                               )}
-                                </TableCell>
-                                <TableCell className="px-0" colSpan={2}>
-                                {category.category_priority}
-                                </TableCell>
-                                <TableCell className="px-0" colSpan={2}>
-                                    <IconButton>
-                                        <Icon color="primary">edit</Icon>
-                                    </IconButton>
-                                    <IconButton>
-                                        <Icon color="primary">delete</Icon>
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                <MaterialTable title="Category List"
+                    data={data}
+                    columns={columns}
+                    actions={actions}
+                    options={{
+                        search: true,
+                        paging: true,
+                        filtering: false,
+                        IconButton: true,
+                        button: true,
+                        actionsColumnIndex: -1
+                    }}
+                >
+                </MaterialTable>
             </div>
-        </Card>
+        </Card >
     );
 };
 

@@ -37,44 +37,28 @@ const PrdoductDetails = () => {
   const classes = useStyles();
 
   const history = useHistory();
-
+  const [isLoadingProduct, setIsLoadingProduct] = React.useState(false);
+  const [productData, setProductData] = React.useState([]);
   function handleClickOpen() {
     // setAddProduct(true)
     history.push("/products/addproduct");
   }
+  React.useEffect(() => {
 
-  const productList = [
-    {
-      imgUrl: "/assets/images/products/headphone-2.jpg",
-      name: "earphone",
-      price: 100,
-      available: 15
-    },
-    {
-      imgUrl: "/assets/images/products/headphone-3.jpg",
-      name: "earphone",
-      price: 1500,
-      available: 30
-    },
-    {
-      imgUrl: "/assets/images/products/iphone-2.jpg",
-      name: "iPhone x",
-      price: 1900,
-      available: 35
-    },
-    {
-      imgUrl: "/assets/images/products/iphone-1.jpg",
-      name: "iPhone x",
-      price: 100,
-      available: 0
-    },
-    {
-      imgUrl: "/assets/images/products/headphone-3.jpg",
-      name: "Head phone",
-      price: 1190,
-      available: 5
-    }
-  ];
+    const sendRequest = async () => {
+            const response_product= await fetch("http://localhost:5000/getproduct");
+            const responseData_product = await response_product.json();
+            console.log(responseData_product);
+            if(JSON.stringify(responseData_product) != JSON.stringify(productData))
+            {
+              setProductData(responseData_product);
+              setIsLoadingProduct(true);
+            }
+  }
+  sendRequest();
+});
+
+  const productList = productData;
 
   return (
     <Card elevation={3} className="pt-20 mb-24">
@@ -99,19 +83,25 @@ const PrdoductDetails = () => {
             <TableHead>
               <TableRow>
                 <TableCell className="px-24" colSpan={2}>
-                  Name
+                  Product Name
                             </TableCell>
 
-                <TableCell className="px-0" colSpan={4}>
-                  Image
+                <TableCell className="px-0" colSpan={2}>
+                  Product Category
               </TableCell>
                 <TableCell className="px-0" colSpan={2}>
-                  Status
+                  Product Subcategory
               </TableCell>
-                <TableCell className="px-0" colSpan={1}>
+                <TableCell className="px-0" colSpan={2}>
                   Priority
               </TableCell>
-                <TableCell className="px-0" colSpan={1}>
+              <TableCell className="px-0" colSpan={2}>
+                  Product Description
+              </TableCell>
+              <TableCell className="px-0" colSpan={2}>
+                  Status
+              </TableCell>
+                <TableCell className="px-0" colSpan={2}>
                   Edit
               </TableCell>
               </TableRow>
@@ -121,40 +111,25 @@ const PrdoductDetails = () => {
                 <TableRow key={index}>
 
                   <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    Dairy Milk
+                    {product.product_name}
                                 </TableCell>
-                  <TableCell className="px-0 capitalize" colSpan={4} align="center">
-                    <div className="flex flex-middle">
-                      <img
-                        className="circular-image-small"
-                        src={product.imgUrl}
-                        alt="user"
-                      />
-                      <p className="m-0 ml-8">{product.name}</p>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="px-0" align="left" colSpan={2}>
-                    {product.available ? (
-                      product.available < 20 ? (
-                        <small className="border-radius-4 bg-secondary text-white px-8 py-2 ">
-                          {product.available} available
-                        </small>
-                      ) : (
-                        <small className="border-radius-4 bg-primary text-white px-8 py-2 ">
-                          in stock
-                        </small>
-                      )
-                    ) : (
-                      <small className="border-radius-4 bg-error text-white px-8 py-2 ">
-                        out of stock
-                      </small>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-0" colSpan={1}>
-                    100
+                  
+                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
+                    {product.category}
                                 </TableCell>
-                  <TableCell className="px-0" colSpan={1}>
+                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
+                    {product.sub_category}
+                                </TableCell>
+                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
+                    {product.product_priority}
+                                </TableCell>
+                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
+                    This is description
+                                </TableCell>
+                  <TableCell className="px-0" colSpan={2}>
+                    {product.status}
+                                </TableCell>
+                  <TableCell className="px-0" colSpan={2}>
                     <IconButton>
                       <Icon color="primary">edit</Icon>
                     </IconButton>
