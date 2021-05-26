@@ -37,35 +37,36 @@ const PrdoductDetails = () => {
   const classes = useStyles();
 
   const history = useHistory();
-  const [isLoadingProduct, setIsLoadingProduct] = React.useState(false);
-  const [productData, setProductData] = React.useState([]);
+
   function handleClickOpen() {
     // setAddProduct(true)
     history.push("/products/addproduct");
   }
-  React.useEffect(() => {
 
+  const [productData, setProductData] = React.useState([]);
+
+  React.useEffect(() => {
+    console.log("check");
     const sendRequest = async () => {
-            const response_product= await fetch("http://localhost:5000/getproduct");
-            const responseData_product = await response_product.json();
-            console.log(responseData_product);
-            if(JSON.stringify(responseData_product) != JSON.stringify(productData))
-            {
-              setProductData(responseData_product);
-              setIsLoadingProduct(true);
-            }
-  }
-  sendRequest();
+        const response = await fetch("http://localhost:5000/getproduct");
+        const responseData = await response.json();
+        if(JSON.stringify(responseData) != JSON.stringify(productData))
+        {
+            setProductData(responseData);
+        }
+       
+    };
+    sendRequest();
 });
 
   const productList = productData;
-
+  console.log(productList);
   return (
     <Card elevation={3} className="pt-20 mb-24">
       <div className="mb-sm-30">
         <Breadcrumb
           routeSegments={[
-            { name: "Product", path: "/produscts" },
+            { name: "Product", path: "/#" },
             { name: "Inventory" }
           ]}
         />
@@ -83,26 +84,20 @@ const PrdoductDetails = () => {
             <TableHead>
               <TableRow>
                 <TableCell className="px-24" colSpan={2}>
-                  Product Name
-                            </TableCell>
+                 Product Name
+                  </TableCell>
 
-                <TableCell className="px-0" colSpan={2}>
-                  Product Category
+                <TableCell className="px-0" colSpan={1}>
+                SKU Size
               </TableCell>
-                <TableCell className="px-0" colSpan={2}>
-                  Product Subcategory
+                <TableCell className="px-0" colSpan={1}>
+                Category
               </TableCell>
-                <TableCell className="px-0" colSpan={2}>
-                  Priority
+                <TableCell className="px-0" colSpan={1}>
+                Sub-Category
               </TableCell>
-              <TableCell className="px-0" colSpan={2}>
-                  Product Description
-              </TableCell>
-              <TableCell className="px-0" colSpan={2}>
-                  Status
-              </TableCell>
-                <TableCell className="px-0" colSpan={2}>
-                  Edit
+                <TableCell className="px-0" colSpan={1}>
+                Brand
               </TableCell>
               </TableRow>
             </TableHead>
@@ -111,25 +106,40 @@ const PrdoductDetails = () => {
                 <TableRow key={index}>
 
                   <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    {product.product_name}
+                   {product.name}
                                 </TableCell>
-                  
-                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    {product.category}
+                  <TableCell className="px-0 capitalize" colSpan={1} align="center">
+                    <div className="flex flex-middle">
+                      <img
+                        className="circular-image-small"
+                        src={product.imgUrl}
+                        alt="user"
+                      />
+                      <p className="m-0 ml-8">{product.name}</p>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="px-0" align="left" colSpan={1}>
+                    {product.available ? (
+                      product.available < 20 ? (
+                        <small className="border-radius-4 bg-secondary text-white px-8 py-2 ">
+                          {product.available} available
+                        </small>
+                      ) : (
+                        <small className="border-radius-4 bg-primary text-white px-8 py-2 ">
+                          in stock
+                        </small>
+                      )
+                    ) : (
+                      <small className="border-radius-4 bg-error text-white px-8 py-2 ">
+                        out of stock
+                      </small>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-0" colSpan={1}>
+                    100
                                 </TableCell>
-                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    {product.sub_category}
-                                </TableCell>
-                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    {product.product_priority}
-                                </TableCell>
-                  <TableCell className="px-0 capitalize" align="left" colSpan={2}>
-                    This is description
-                                </TableCell>
-                  <TableCell className="px-0" colSpan={2}>
-                    {product.status}
-                                </TableCell>
-                  <TableCell className="px-0" colSpan={2}>
+                  <TableCell className="px-0" colSpan={1}>
                     <IconButton>
                       <Icon color="primary">edit</Icon>
                     </IconButton>
