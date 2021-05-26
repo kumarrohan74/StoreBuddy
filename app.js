@@ -17,16 +17,17 @@ const addLocality = require('./api/addLocality');
 const addAddress = require('./api/addAddress');
 const addOrder = require('./api/addOrder');
 const addBrand = require('./api/addBrand');
+const AutoIncrementFactory = require('mongoose-sequence');
 var cors = require('cors');
 
 
 //connection to database
-mongoose.connect('mongodb://localhost/StoreBuddy')
+var connection = mongoose.connect('mongodb://localhost/StoreBuddy')
     .then(() => console.log('Connected'))
     .catch(err => console.error('could not connect'));
 
 const app = express();
-
+const AutoIncrement = AutoIncrementFactory(connection);
 
 app.use(cors());
 //assigning port no.
@@ -47,13 +48,32 @@ app.post('/addproduct', (req, res) => {
     console.log(req.body);
     if(res.statusCode === 200)
             {
-                addProduct.createProduct(req.body.inputs);
+                addProduct.createProduct(req.body);
                 res.redirect('success.html');
             }
 });
 
+app.post('/editproduct', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addProduct.editProduct(req.body.formData);
+        res.redirect('success.html');
+    }
+
+});
+
+app.post('/deleteproduct', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addProduct.deleteProduct(req.body);
+        res.redirect('success.html');
+    }
+
+})
+
 app.get('/getproduct', (req,res) => {
-    
     addProduct.getProduct().then(result => res.json(result)).catch(err => console.log("error"));
 })
 
@@ -66,10 +86,30 @@ app.post('/addcategory',(req,res) => {
    console.log(req.body);
     if(res.statusCode === 200)
             {
-                addCategory.createCategory(req.body.inputs);
+                addCategory.createCategory(req.body.addCategoryform);
                 res.redirect('success.html');
             }
 });
+
+app.post('/editcategory', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addCategory.editCategory(req.body.editformData);
+        res.redirect('success.html');
+    }
+
+});
+
+app.post('/deletecategory', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addCategory.deleteCategory(req.body);
+        res.redirect('success.html');
+    }
+
+})
 
 app.get('/getcategory', (req,res) => {
     addCategory.getCategory().then(result => res.json(result)).catch(err => console.log("error"));
@@ -83,33 +123,92 @@ app.get('/getcategory', (req,res) => {
 app.post('/addsubcategory',(req,res) => {
     if(res.statusCode === 200)
             {
-                addSubCategory.createSubCategory(req.body.inputs);
+                addSubCategory.createSubCategory(req.body.addSubCategoryform);
                 res.redirect('success.html');
             }
    
    
 });
 
+app.post('/editsubcategory', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addSubCategory.editSubCategory(req.body.editformData);
+        res.redirect('success.html');
+    }
+
+})
+
+app.post('/deletesubcategory', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addSubCategory.deleteSubCategory(req.body);
+        res.redirect('success.html');
+    }
+
+})
+
 app.get('/getsubcategory', (req,res) => {
     addSubCategory.getSubCategory().then(result => res.json(result)).catch(err => console.log("error"));
 })
 
-/*  ---------------------------------------------------SKU------------------------------------------*/
 
-app.post('/addskunitpage',(req,res) => {
-    res.redirect('addsku.html');
-});
+/*  ---------------------------------------------------Brand------------------------------------------*/
 
-app.post('/addsku',(req,res) => {
+
+app.post('/addbrand',(req,res) => {
     if(res.statusCode === 200)
             {
-                addSKU.createSKU(req.body);
+                console.log(req.body);
+                addBrand.createBrand(req.body.addformData);
                 res.redirect('success.html');
             }
     console.log(req.body);
    
 });
 
+app.post('/editbrand', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        addBrand.editBrand(req.body.editformData);
+        res.redirect('success.html');
+    }
+
+});
+
+app.post('/deleteBrand', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addBrand.deleteBrand(req.body);
+        res.redirect('success.html');
+    }
+
+})
+
+app.get('/getbrand', (req,res) => {
+    addBrand.getBrand().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+
+
+/*  ---------------------------------------------------SKU------------------------------------------*/
+
+app.post('/addsku',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addSKU.createSKU(req.body.addSkuValues);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+app.get('/getsku', (req,res) => {
+    addSKU.getSKU().then(result => res.json(result)).catch(err => console.log("error"));
+})
 
 /*  ---------------------------------------------------Customer------------------------------------------*/
 
@@ -253,23 +352,7 @@ app.post('/addorder',(req,res) => {
    
 });
 
-/*  ---------------------------------------------------Brand------------------------------------------*/
 
-
-app.post('/addbrandpage',(req,res) => {
-    res.redirect('addbrand.html');
-});
-
-app.post('/addbrand',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                console.log(req.body);
-                addBrand.createBrand(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
 
 
 
