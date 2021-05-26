@@ -1,38 +1,70 @@
 //header files
 const mongoose = require('mongoose');
-var categoryDetails = "bnm";
+mongoose.set('useFindAndModify', false);
 //product schema
+
 const categorySchema = new mongoose.Schema({
+    category_id: {type:Number,default: 0},
     category_name: String,
     category_image: String,
     category_description : String,
     status: String,
     category_priority: Number,
     partner_id : Number,
-    created_at: {type: Date, default: Date.now }
+    isDelete: Boolean,
+    created_at: {type: Date, default: Date.now },
+    updated_at: {type: Date}
 });
 
 //create product api
 const Category = mongoose.model('Category', categorySchema);
+
+var query = Category.find();
+var categoryLength = 0;
+query.count(function (err, count) {
+    if (err) console.log(err)
+    else 
+        {   
+            categoryLength = count;
+        }
+});
+
 async function createCategory(data)
 {
+    categoryLength = categoryLength + 1;
     const category = new Category({
-        category_name: data.categoryName,
-        category_image: data.categoryImageURL,
-        category_description : data.categoryDescription,
+        category_id: categoryLength,
+        category_name: data.addcategoryName,
+        category_image: data.addcategoryImageURL,
+        category_description : data.addcategoryDescription,
         status: 1,
         partner_id : 3,
-        category_priority: data.categoryPriority
+        isDelete: false,
+        category_priority: data.addcategoryPriority
+       
     });
-    const result = await category.save();
+    const result = await category.save(); 
     
 }
   function getCategory()
 {
-    return Category.find();
+    return Category.find({"isDelete" : false});
 }
 
+async function editCategory(data)
+{
+    
+    const updateddata = await Category.updateOne({"category_id" : data.categoryId},{"category_name" :data.categoryName, "isDelete":data.isDelete,"status" : data.categoryStatus, "category_priority": data.categoryPriority,"category_description":data.categoryDescription, "updated_at": new Date()},{upsert: true});
+    console.log("updateddata");
+    console.log(updateddata);
+}
 
+async function deleteCategory(data)
+{
+    
+    const updateddata = await Category.updateOne({"category_id" : data.category_id},{"category_name" :data.category_name, "isDelete" : data.isDelete,"status" : data.status, "category_priority": data.category_priority,"category_description":data.category_description, "updated_at": new Date()},{upsert: true});
+    
+}
 
-module.exports = { createCategory, getCategory, categoryDetails};
+module.exports = { createCategory, getCategory, editCategory, deleteCategory};
 
