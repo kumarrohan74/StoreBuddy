@@ -53,6 +53,8 @@ app.post('/addproduct', (req, res) => {
             }
 });
 
+
+
 app.post('/editproduct', (req,res) => {
     console.log(req.body);
     if(res.statusCode === 200)
@@ -75,6 +77,11 @@ app.post('/deleteproduct', (req,res) => {
 
 app.get('/getproduct', (req,res) => {
     addProduct.getProduct().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+app.get('/getproductid', (req,res) => {
+    console.log("called product id");
+    addProduct.getProductId(req.query.productName, req.query.productPriority).then(result => res.json(result)).catch(err => console.log("error"));
 })
 
 
@@ -178,7 +185,7 @@ app.post('/editbrand', (req,res) => {
 
 });
 
-app.post('/deleteBrand', (req,res) => {
+app.post('/deletebrand', (req,res) => {
     console.log(req.body);
     if(res.statusCode === 200)
     {
@@ -199,15 +206,49 @@ app.get('/getbrand', (req,res) => {
 app.post('/addsku',(req,res) => {
     if(res.statusCode === 200)
             {
-                addSKU.createSKU(req.body.addSkuValues);
+                addSKU.createSKU(req.body);
                 res.redirect('success.html');
             }
     console.log(req.body);
    
 });
 
+app.post('/addskuinline',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                addSKU.createSKUInLine(req.body);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+   
+});
+
+app.post('/editsku', (req,res) => {
+    console.log("called");
+    if(res.statusCode === 200)
+    {
+        console.log(req.body);
+        addSKU.editSKU(req.body);
+        res.redirect('success.html');
+    }
+
+});
+
+app.post('/deletesku', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addSKU.deleteSKU(req.body);
+        res.redirect('success.html');
+    }
+
+})
+
 app.get('/getsku', (req,res) => {
-    addSKU.getSKU().then(result => res.json(result)).catch(err => console.log("error"));
+    var obj = Object.keys(req.query);
+    var num = Number(obj)
+    console.log(typeof(num));
+    addSKU.getSKU(num).then(result => res.json(result)).catch(err => console.log("error"));
 })
 
 /*  ---------------------------------------------------Customer------------------------------------------*/
