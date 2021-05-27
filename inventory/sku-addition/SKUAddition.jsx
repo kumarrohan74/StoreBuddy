@@ -144,13 +144,14 @@ const ProductSKUAddition = (props) => {
                     ...addSkuValues,
                     product_name: history.location.state.formData.productName
                 })
-                const data = {addSkuValues};
+                const data = addSkuValues;
        console.log("rohan");
        console.log(history.location.state.formData);
         console.log(data);
-         
         console.log("vaathi coming");
         console.log(history.location.state.formData.productName);
+        data["product_id"] = history.location.state.prodId;
+        console.log("skuuuuu");
         console.log(data);
         const headers = {
             "Access-Control-Allow-Origin": "*",
@@ -160,8 +161,11 @@ const ProductSKUAddition = (props) => {
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
-                setOpen(false);
+                
             }
+
+            setOpen(false);
+            
         }
     };
 
@@ -177,20 +181,7 @@ const ProductSKUAddition = (props) => {
     }
 
     function onLoadSubmitSKU() {
-        const data = history.location.state.formData;
-        console.log(history.location.state.formData);
-        data["subscriptionType"] = history.location.state.subscriptionType;
-        console.log("history");
-        
-        console.log(data);
-        const headers = {
-            "Access-Control-Allow-Origin": "*",
-          }
-         axios.post("http://localhost:5000/addproduct", data ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
-            console.log("Something went wrong. Plase try again later");
-        });
+       
     }
 
     const handleClose = () => {

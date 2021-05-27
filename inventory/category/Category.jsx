@@ -102,9 +102,11 @@ const PrdoductCategory = () => {
                 setCategoryData(responseData);
                 setIsLoading(true);
             }
+            console.log(responseData);
         };
+       
         sendRequest();
-    }, [location])
+    })
 
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);

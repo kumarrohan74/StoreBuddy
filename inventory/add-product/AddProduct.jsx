@@ -6,14 +6,16 @@ import { makeStyles } from "@material-ui/core/styles";
 import Select from 'react-select';
 import { Breadcrumb } from "matx";
 import { ValidatorForm } from "react-material-ui-form-validator";
-import { useHistory } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { useEffect, useState, setState } from "react";
 import axios from 'axios';
 import ImageUploader from 'react-images-upload';
 import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState } from 'draft-js';
-
+import { ContentState, convertToRaw } from 'draft-js';
+import { convertToHTML } from 'draft-convert';
+import DOMPurify from 'dompurify';
 import {
     Card,
     Grid,
@@ -109,17 +111,29 @@ function mappingBuildingList_wise() {
 
 
 
-
+let addingAll = {};
 const AddProducts = () => {
     const [primaryPicture, setPrimaryPicture] = React.useState([]);
     const [secondryPicture, setSecondryPicture] = React.useState([]);
     const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
     const [subscribe, setSubscribe] = React.useState('Non-Subscribe');
-
+    const  [convertedContent, setConvertedContent] = useState(null);
+    const location = useLocation();
+    const history = useHistory();
+    var vari = 0;
+    var final_data;
     const onEditorStateChange = (editorState) => {
-        console.log(editorState)
+        convertContentToHTML();
         setEditorState(editorState);
     };
+
+
+    const convertContentToHTML = () => {
+        let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
+        var stringParsed = currentContentAsHTML.blocks[0].text;
+        setformData({ ...formData, productDescription: stringParsed});
+      }
+
 
     const [formData, setformData] = React.useState({
         // productName: "",
@@ -135,11 +149,14 @@ const AddProducts = () => {
     const [categoryData, setCategoryData] = React.useState([]);
     const [subCategoryData, setSubCategoryData] = React.useState([]);
     const [brandData, setBrandData] = React.useState([]);
-
-    const [optionSelectData, setOptionSelectData] = React.useState({ })
-
+    const [open, setOpen] = React.useState(false);
+    const [optionSelectData, setOptionSelectData] = React.useState({ });
+    const [prodId, setProdId] = React.useState({});
     useEffect(() => {
-        
+        addingAll = location.state;
+        if ((location.state != null || location.state != undefined) && (addingAll != null || addingAll != undefined)) {
+            setOpen(true);
+        }
         const sendRequest = async () => {
             const response_category = await fetch("http://localhost:5000/getcategory");
             const responseData_category = await response_category.json();
@@ -162,6 +179,7 @@ const AddProducts = () => {
                 setIsLoadingBrand(true);
                
             }
+            console.log("adding");
 
            /*if(JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData))
             {
@@ -171,7 +189,7 @@ const AddProducts = () => {
         };
         sendRequest();
 
-    });
+    },[Location]);
 
     const addNewCatButton = [
         {
@@ -239,14 +257,38 @@ const AddProducts = () => {
         console.log(optionSelectData);
         console.log(primaryPicture);
         console.log(secondryPicture);
-        history.push({
-                    pathname: '/products/skuaddition',
-                    state:{"formData":formData, "optionSelectData": optionSelectData, "primaryPicture":primaryPicture, "secondryPicture":secondryPicture, "subscriptionType": subscribe  }
-                })
+        const data = formData;
+        
+        data["subscriptionType"] = subscribe;
+        console.log("addproduct");
+        console.log(data);
+        const query = {productName: data.productName};
+        const headers = {
+            "Access-Control-Allow-Origin": "*",
+          }
+         axios.post("http://localhost:5000/addproduct", data ,{headers}).then(() => {
+           console.log("sent");
+         }).catch(() => {
+            console.log("Something went wrong. Plase try again later");
+        });
+        axios.get("http://localhost:5000/getproductid",{ params: { productName: data.productName, productPriority: data.productPriority } } ).then((response) => {
+            console.log(response.data);
+            getProd(response.data.product_id);
+          }).catch(() => {
+             console.log("Something went wrong. Plase try again later");
+         });
+       console.log(final_data);
+        
     };
-    
+    function getProd(data) {
+        console.log(data);
+        history.push({
+            pathname: '/products/skuaddition',
+            state:{"formData":formData, "prodId": data, "primaryPicture":primaryPicture, "secondryPicture":secondryPicture, "subscriptionType": subscribe  }
+        })
+    }
     const classes = useStyles();
-    const history = useHistory();
+    
 
     function onSelectOption(event,data) {
         
@@ -327,8 +369,6 @@ const AddProducts = () => {
                     
                 }
             }
-            
-            
         }
         console.log(formData);
     }
@@ -519,6 +559,8 @@ const AddProducts = () => {
                                                 editorStyle={{ minHeight: "100px" }}
                                                 toolbarStyle={{ border: "1px solid brown" }}
                                                 onEditorStateChange={onEditorStateChange}
+                                                name="productDescription"
+                                                
                                             />
                                         </div>
                                     </div>

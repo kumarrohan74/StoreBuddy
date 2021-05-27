@@ -14,6 +14,7 @@ import {
   Icon,
 } from "@material-ui/core";
 import axios from 'axios';
+import { useLocation, useHistory } from "react-router-dom";
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
 import Radio from "@material-ui/core/Radio";
@@ -61,7 +62,7 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '4px'
   }
 }));
-
+let addingBrand = {};
 const ProdcutBrand = () => {
 
   const classes = useStyles();
@@ -97,9 +98,15 @@ const ProdcutBrand = () => {
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-
+  const location = useLocation();
+    const history = useHistory();
   const [brandData, setBrandData] = React.useState([]);
   React.useEffect(() => {
+
+    addingBrand = location.state;
+        if ((location.state != null || location.state != undefined) && (addingBrand != null || addingBrand != undefined)) {
+            setOpen(true);
+        }
     const sendRequest = async () => {
         const response = await fetch("http://localhost:5000/getbrand");
         const responseData = await response.json();
@@ -107,10 +114,10 @@ const ProdcutBrand = () => {
         {
             setBrandData(responseData);
         }
-       
+       console.log(responseData);
     };
     sendRequest();
-});
+}, [location]);
 
 
 

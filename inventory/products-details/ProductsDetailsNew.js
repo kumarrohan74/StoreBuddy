@@ -36,6 +36,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
+let addingProduct = {};
 const PrdoductCategory = () => {
 
     const location = useLocation();
@@ -58,7 +59,10 @@ const PrdoductCategory = () => {
     const [productData, setProductData] = React.useState([]);
 
   React.useEffect(() => {
-    
+    addingProduct = location.state;
+        if ((location.state != null || location.state != undefined) && (addingProduct != null || addingProduct != undefined)) {
+            setOpen(true);
+        }
     const sendRequest = async () => {
         const response = await fetch("http://localhost:5000/getproduct");
         const responseData = await response.json();
@@ -66,10 +70,10 @@ const PrdoductCategory = () => {
         {
             setProductData(responseData);
         }
-       
+       console.log(responseData);
     };
     sendRequest();
-});
+},[Location]);
 
     function handleClickEditDailogOpen(data) {
         alert (JSON.stringify(data))

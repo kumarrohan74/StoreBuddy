@@ -6,7 +6,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Select from 'react-select';
 import { Breadcrumb } from "matx";
 import { ValidatorForm } from "react-material-ui-form-validator";
-import { useHistory } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { useEffect, useState, setState } from "react";
 import axios from 'axios';
 import ImageUploader from 'react-images-upload';
@@ -14,7 +14,7 @@ import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState } from 'draft-js';
 import SKUEdit from '../sku-addition/SKUEdit';
-
+import { ContentState, convertToRaw } from 'draft-js';
 import {
     Card,
     Grid,
@@ -111,9 +111,9 @@ function mappingBuildingList_wise() {
 
 
 
-
+let editingAll = {};
 const EditProduct = (props) => {
-    console.log(props);
+    
 
     const {product_name,category,sub_category,sku_size,status,stock_qty,stock_update} = props.location.state.name;
 
@@ -121,11 +121,10 @@ const EditProduct = (props) => {
     const [secondryPicture, setSecondryPicture] = React.useState([]);
     const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
     const [subscribe, setSubscribe] = React.useState('Non-Subscribe');
-
-    const onEditorStateChange = (editorState) => {
-        console.log(editorState)
-        setEditorState(editorState);
-    };
+    const [open, setOpen] = React.useState(false);
+    const location = useLocation();
+    const history = useHistory();
+    
 
     
     const [isLoadingCategory, setIsLoadingCategory] = React.useState(false);
@@ -136,9 +135,23 @@ const EditProduct = (props) => {
     const [brandData, setBrandData] = React.useState([]);
     const [optionSelectData, setOptionSelectData] = React.useState({ })
 
+    const onEditorStateChange = (editorState) => {
+        convertContentToHTML();
 
+        setEditorState(editorState);
+    };
+
+
+    const convertContentToHTML = () => {
+        let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
+        var stringParsed = currentContentAsHTML.blocks[0].text;
+        setformData({ ...formData, productDescription: stringParsed});
+      }
     useEffect(() => {
-        
+        editingAll = location.state;
+        if ((location.state != null || location.state != undefined) && (editingAll != null || editingAll != undefined)) {
+            setOpen(true);
+        }
         const sendRequest = async () => {
             const response_category = await fetch("http://localhost:5000/getcategory");
             const responseData_category = await response_category.json();
@@ -170,7 +183,7 @@ const EditProduct = (props) => {
         };
         sendRequest();
 
-    });
+    },[Location]);
 
 
     const addNewCatButton = [
@@ -251,12 +264,9 @@ const EditProduct = (props) => {
     
 
     const classes = useStyles();
-    const history = useHistory();
-    console.log("histoooo");
-    console.log(history);
+    
+   
     const data = history.location.state.name;
-    console.log("data");
-    console.log(data);
     const [formData, setformData] = React.useState({
        cgst: data.cgst,
        igst: data.igst,
@@ -271,6 +281,7 @@ const EditProduct = (props) => {
        product_category: data.category,
        product_subcategory: data.sub_category,
        subscription_type: data.subscription_type,
+       product_description: data.product_description,
        isDelete : data.isDelete
     })
     function onSelectOption(event,data) {
@@ -376,7 +387,7 @@ const EditProduct = (props) => {
             secondryPictures
         });
     }
-
+   
     return (
         <div className="m-sm-30">
             {/* <div className="mb-sm-30">
@@ -526,6 +537,7 @@ const EditProduct = (props) => {
                                                 editorStyle={{ minHeight: "100px" }}
                                                 toolbarStyle={{ border: "1px solid brown" }}
                                                 onEditorStateChange={onEditorStateChange}
+                                                name="productDescription"
                                             />
                                         </div>
                                     </div>
@@ -578,7 +590,7 @@ const EditProduct = (props) => {
                     <br />
                     <br />
 
-                        <SKUEdit />
+                        <SKUEdit name={formData.product_id}/>
                     <div className={classes.button} style={{marginTop:"50px"}}>
                         <Button type="submit" variant="contained" color="primary">
                             Submit

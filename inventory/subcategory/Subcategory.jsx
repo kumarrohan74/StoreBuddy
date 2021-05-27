@@ -17,6 +17,8 @@ import {
 import axios from 'axios';
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
+import { useEffect } from "react";
+import { useLocation, useHistory } from "react-router-dom";
 import Radio from "@material-ui/core/Radio";
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
@@ -63,6 +65,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+let addingSubCategory = {};
 const ProdcutSubCategory = () => {
 
   const classes = useStyles();
@@ -97,10 +100,15 @@ const ProdcutSubCategory = () => {
     description: '',
   })
 
+  const location = useLocation();
+  const history = useHistory();
 
-  React.useEffect(() => {
+  useEffect(() => {
     
-   
+    addingSubCategory = location.state;
+    if ((location.state != null || location.state != undefined) && (addingSubCategory != null || addingSubCategory != undefined)) {
+        setOpen(true);
+    }
     const sendRequest = async () => {
         const response = await fetch("http://localhost:5000/getsubcategory");
         const responseData = await response.json();
@@ -109,10 +117,12 @@ const ProdcutSubCategory = () => {
             setSubCategoryData(responseData);
             setIsLoading(true);
         }
+        console.log("subcat");
+        console.log(responseData);
     };
     sendRequest();
 
-});
+}, [location]);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
