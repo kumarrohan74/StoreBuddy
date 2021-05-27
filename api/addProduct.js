@@ -54,7 +54,7 @@ async function createProduct(data)
         igst : data.productIGST,
         status: 1,
         product_sku : data.product_sku,
-        product_description : data.product_description,
+        product_description : data.productDescription,
         partner_id : 3,
         product_priority: data.productPriority,
         category: data.productCategory,
@@ -73,9 +73,13 @@ async function editProduct(data)
 {
     console.log("data edit");
     console.log(data);
-    const updateddata = await Product.updateOne({"product_id" : data.product_id},{"cgst":data.cgst,"igst":data.igst,"sgst":data.sgst,"locality":data.product_locality,"product_alias": data.product_alias,"brand": data.product_brand,"product_name":data.product_name,"product_priority": data.product_priority,"category":data.product_category,"sub_category":data.product_subcategory,"subscription_type": data.subscription_type,"isDelete":data.isDelete,"updated_at": new Date()},{upsert: true});
+    const updateddata = await Product.updateOne({"product_id" : data.product_id},{"cgst":data.cgst,"igst":data.igst,"sgst":data.sgst,"locality":data.product_locality,"product_alias": data.product_alias,"brand": data.product_brand,"product_name":data.product_name,"product_priority": data.product_priority,"category":data.product_category,"sub_category":data.product_subcategory,"subscription_type": data.subscription_type,"isDelete":data.isDelete,"product_description": data.product_description,"updated_at": new Date()},{upsert: true});
     console.log("updateddata");
     console.log(updateddata);
+}
+
+async function getProductId(productName, productPriority) {
+    return Product.findOne({"product_name": productName, "product_priority": productPriority,"isDelete" : false})
 }
 
 async function getProduct()
@@ -84,7 +88,7 @@ async function getProduct()
 }
 
 async function deleteProduct(data) {
-    const updateddata = await Product.updateOne({"product_id" : data.product_id},{"cgst":data.cgst,"igst":data.igst,"sgst":data.sgst,"locality":data.product_locality,"product_alias": data.product_alias,"brand": data.product_brand,"product_name":data.product_name,"product_priority": data.product_priority,"category":data.product_category,"sub_category":data.product_subcategory,"subscription_type": data.subscription_type,"isDelete":data.isDelete,"updated_at": new Date()},{upsert: true});
+    const updateddata = await Product.updateOne({"product_id" : data.product_id},{"cgst":data.cgst,"igst":data.igst,"sgst":data.sgst,"locality":data.product_locality,"product_alias": data.product_alias,"brand": data.product_brand,"product_name":data.product_name,"product_priority": data.product_priority,"category":data.product_category,"sub_category":data.product_subcategory,"subscription_type": data.subscription_type,"isDelete":data.isDelete,"product_description": data.product_description,"updated_at": new Date()},{upsert: true});
 }
 
-module.exports = { createProduct, getProduct, editProduct, deleteProduct};
+module.exports = { createProduct, getProduct, editProduct, deleteProduct, getProductId};

@@ -18,7 +18,7 @@ const skuSchema = new mongoose.Schema({
     sku_barcode: String,
     sku_code: String,
     sku_mf: Number,
-    product_name : String,
+    product_id : Number,
     isDelete: Boolean,
     price_per_kg_per_litre: Number,
     updated_at: {type:Date},
@@ -36,21 +36,55 @@ async function createSKU(data)
         sku_code: data.skuCode,
         strike_price: data.strikePrice,
         quantity_editable: data.quantityEditable,
-        sku_barcode: data.skuBarCode,
+        sku_barcode: data.skuBarcode,
         sku_code: data.skuCode,
         sku_mf: data.qtySkumf,
-        product_name: data.product_name,
+        product_id: data.product_id,
         isDelete : false,
         price_per_kg_per_litre: data.qtyPriceper,
     });
     const result = await sku.save();
     console.log(result);
 }
-async function getSKU()
+
+async function createSKUInLine(data)
 {
-    return SKU.find();
-  
-    
-    
+    const sku = new SKU({
+        sku_id: randomXToY(101, 999),
+        package_size: data.package_size,
+        product_mrp: data.product_mrp,
+        sku_code: data.sku_code,
+        strike_price: data.strike_price,
+        quantity_editable: data.quantityEditable,
+        sku_barcode: data.sku_barcode,
+        sku_mf: data.sku_mf,
+        product_id: data.product_id,
+        isDelete : false,
+        price_per_kg_per_litre: data.price_per_kg_per_litre,
+    });
+    const result = await sku.save();
+    console.log(result);
 }
-module.exports = { createSKU, getSKU};
+
+async function getSKU(id)
+{
+    return SKU.find({"product_id":id,"isDelete" : false});
+}
+
+async function editSKU(data)
+{
+    console.log("data ilp");
+    console.log(data);   
+    const updateddata = await SKU.updateOne({"sku_id" : data.sku_id},{"sku_id" :data.sku_id,  "package_size": data.package_size,"product_mrp":data.product_mrp, "sku_code":data.sku_code,"sku_barcode":data.sku_barcode, "strike_price": data.strike_price,"quantity_editable":data.quantity_editable,"sku_mf":data.sku_mf,"isDelete": data.isDelete,"price_per_kg_litre":data.price_per_kg_litre,"updated_at": new Date()},{upsert: true});
+
+}
+
+async function deleteSKU(data)
+{
+    console.log("data delete");
+    console.log(data);   
+    const updateddata = await SKU.updateOne({"sku_id" : data.sku_id},{"sku_id" :data.sku_id,  "package_size": data.package_size,"product_mrp":data.product_mrp, "sku_code":data.sku_code,"sku_barcode":data.sku_barcode,"strike_price": data.strike_price,"quantity_editable":data.quantity_editable,"sku_mf":data.sku_mf,"isDelete": data.isDelete,"price_per_kg_litre":data.price_per_kg_litre,"updated_at": new Date()},{upsert: true});
+
+}
+
+module.exports = { createSKU, getSKU, editSKU, deleteSKU, createSKUInLine};
