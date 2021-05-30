@@ -1,6 +1,7 @@
 import React from "react";
 import { Breadcrumb } from "matx";
 import MaterialTable from 'material-table';
+import Config from '../../config';
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -10,58 +11,25 @@ import { useTheme } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import {
   Button,
-  IconButton,
-  Icon,
 } from "@material-ui/core";
-import axios from 'axios';
 import { useLocation, useHistory } from "react-router-dom";
+import axios from 'axios';
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
 import Radio from "@material-ui/core/Radio";
 import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
 import DialogContentText from "@material-ui/core/DialogContentText";
-import ImageUploader from 'react-images-upload';
 import { ImageUpload } from "app/views/uploadImage/ImageUpload";
-const useStyles = makeStyles(theme => ({
 
-  root: {
-    padding: '2px 4px',
-    display: 'flex',
-    alignItems: 'center',
-    border: '1px solid silver'
-  },
-  input: {
-    marginLeft: theme.spacing(1),
-    flex: 1,
-  },
-  iconButton: {
-    padding: 10,
-  },
-  divider: {
-    height: 28,
-    margin: 4,
-  },
-  button: {
-    float: 'right',
-    marginRight: '10px'
-  },
-  headerName: {
-    float: 'left',
-    padding: '0px 0px 0px 10px'
-  },
-  dialogPaper: {
-    // height: '400px'
-  },
-  uploadfile: {
-    width: '440px'
-  },
+const useStyles = makeStyles(theme => ({
   radiobtn: {
     border: '1px solid silver',
     paddingLeft: '10px',
     borderRadius: '4px'
   }
 }));
+
+let imageValue = [];
 let addingBrand = {};
 const ProdcutBrand = () => {
 
@@ -70,7 +38,6 @@ const ProdcutBrand = () => {
   const [editDailogOpen, setEditDailogOpen] = React.useState(false);
 
   const [alertDailog, setAlertDailog] = React.useState(false);
-  const [uploadPicture, setUploadPicture] = React.useState([]);
 
   function handleClose() {
     setOpen(false);
@@ -78,15 +45,16 @@ const ProdcutBrand = () => {
     setAlertDailog(false);
   }
 
-  const [imgUrl, setImageUrl] = React.useState({
-    imageUrl: ''
-  });
+  const [selectedValue, setSelectedValue] = React.useState('1');
+
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
 
   const [editformData, setEditformData] = React.useState({
-    id:'',
+    id: '',
     name: '',
     priority: '',
-    status: '',
     description: '',
   })
 
@@ -96,19 +64,16 @@ const ProdcutBrand = () => {
     description: '',
   })
 
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const location = useLocation();
-    const history = useHistory();
+  const history = useHistory();
   const [brandData, setBrandData] = React.useState([]);
   React.useEffect(() => {
-
     addingBrand = location.state;
         if ((location.state != null || location.state != undefined) && (addingBrand != null || addingBrand != undefined)) {
             setOpen(true);
         }
     const sendRequest = async () => {
-        const response = await fetch("http://localhost:5000/getbrand");
+        const response = await fetch(`${Config.baseURL}/v1/getbrand`);
         const responseData = await response.json();
         if(JSON.stringify(responseData) != JSON.stringify(brandData))
         {
@@ -119,7 +84,8 @@ const ProdcutBrand = () => {
     sendRequest();
 }, [location]);
 
-
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const GreenRadio = withStyles({
     root: {
@@ -131,22 +97,21 @@ const ProdcutBrand = () => {
     checked: {}
   })(props => <Radio color="default" {...props} />);
 
-  const [selectedValue, setSelectedValue] = React.useState({
-    active: '',
-    inactive: ''
-  });
 
-  function handleChange(event) {
-    if (event.target.value === '1') {
-      setSelectedValue({
-        active: '1',
-      })
-    } else {
-      setSelectedValue({
-        inactive: '0',
-      })
+  function handleClickDelete(event,data)
+    {
+        event.isDelete = true;
+        const formdata = {editformData};
+        const headers = {
+            "Access-Control-Allow-Origin": "*",
+          }
+        axios.post(`${Config.baseURL}/v1/deletebrand`, event ,{headers}).then(() => {
+          console.log("sent");
+        }).catch(() => {
+            console.log("Something went wrong. Plase try again later");
+        });
+
     }
-  }
 
   function onLoadAddFormFieldChange(event) {
     setAddformData({
@@ -162,131 +127,92 @@ const ProdcutBrand = () => {
     })
   }
 
-  function handleClickDelete(event,data)
-    {
-        
-        event.isDelete = true;
-       
-        const formdata = {editformData};
-        console.log("event");
-        
-    
-    console.log(event);
-    const headers = {
-        "Access-Control-Allow-Origin": "*",
-      }
-     axios.post("http://localhost:5000/deletebrand", event ,{headers}).then(() => {
-       console.log("sent");
-     }).catch(() => {
-        console.log("Something went wrong. Plase try again later");
-    });
-
-    }
-
-
-   function handleClickEditDailogOpen(data) {
+  function handleClickEditDailogOpen(data) {
     setEditformData({
       id:data.brand_id,
       name: data.brand_name,
       priority: data.brand_priority,
       status: data.status,
-      description: data.brand_description
+      description: data.brand_description,
+      brandImage: data.category_image,
+      isDelete: data.isDelete
     })
-
-    if (data.status === 1) {
-      setSelectedValue({
-        active: '1',
-      })
-    } else {
-      setSelectedValue({
-        inactive: '0',
-      })
-    }
-
-    setImageUrl({
-      imageUrl: data.image
-    })
-
     setEditDailogOpen(true);
   }
 
-  function onChangeimgUrl(event) {
-    setImageUrl({
-      ...imgUrl,
-      [event.target.name]: event.target.value,
-    })
-  }
-
-  function onloadClearInputField() {
-    setImageUrl({
-      imageUrl: ''
-    })
-  }
-
   function onLoadEditSubmit() {
-    if (editformData.name === "" || editformData.priority === "" || editformData.description === ""
-      || editformData.description === undefined) {
-      if (imgUrl.imageUrl !== "") {
-        setEditDailogOpen(false);
-        setAlertDailog(false);
-      } else {
-        setEditDailogOpen(true);
-        setAlertDailog(true);
-      }
+    if (editformData.name === "" || editformData.priority === "" || imageValue.length === 0) {
+      setEditDailogOpen(true);
+      setAlertDailog(true);
     } else {
-       const data = {editformData};
-      const headers = {
-        "Access-Control-Allow-Origin": "*",
+      imageValue = [];
+      let editformvalue = {
+        value: editformData,
+        status: selectedValue
       }
-     axios.post("http://localhost:5000/editbrand", data ,{headers}).then(() => {
-       console.log("sent");
-     }).catch(() => {
-        console.log("Something went wrong. Plase try again later");
-    });
-    
-    setOpen(false);
-       
-      setEditDailogOpen(false);
-    }
-    console.log(editformData);
-    console.log(selectedValue);
-    console.log(imgUrl);
+        const data = {editformData};
+        var fd = new FormData();
+        fd.append("name",editformData.name);
+        fd.append("description", editformData.description);
+        fd.append("priority", editformData.priority);
+        fd.append("brandImage", editformData.brandImage);
+        fd.append("id", editformData.id);
+        const headers = {
+          "Access-Control-Allow-Origin": "*",
+        }
+      axios.post(`${Config.baseURL}/v1/editbrand`, fd ,{headers}).then(() => {
+        console.log("sent");
+      }).catch(() => {
+          console.log("Something went wrong. Plase try again later");
+      });
+        console.log(editformvalue);
+        setEditDailogOpen(false);
+      }
   };
 
   function alertHandleClose() {
     setAlertDailog(false);
   }
 
-  const onDropPrimary = (uploadPictures) => {
-    console.log(uploadPictures)
-    setUploadPicture({
-      ...uploadPicture,
-      uploadPictures
-    });
-  }
-
   function handleFormSubmit() {
-    if ( addformData.name === "" || addformData.priority === ""
-      || addformData.description === "") {
+    if (imageValue.length === 0 || addformData.name === "" || addformData.priority === "") {
       setOpen(true)
       setAlertDailog(true);
     } else {
       const data = {addformData};
       console.log(data);
+      var fd = new FormData();
+      fd.append("name",addformData.name);
+      fd.append("description", addformData.description);
+      fd.append("priority", addformData.priority);
+      fd.append("brandImage", addformData.brandImage);
       const headers = {
       "Access-Control-Allow-Origin": "*",
-    }
-   axios.post("http://localhost:5000/addbrand", data ,{headers}).then(() => {
-     console.log("sent");
-   }).catch(() => {
-      console.log("Something went wrong. Plase try again later");
-  });
-
-      setImageUrl({
-        imageUrl: ''
+        }
+      axios.post(`${Config.baseURL}/v1/addbrand`, fd ,{headers}).then(() => {
+        console.log("sent");
+      }).catch(() => {
+          console.log("Something went wrong. Plase try again later");
+      });
+          setOpen(false)
+          imageValue = [];
+          setAddformData({
+        name: "",
+        priority: "",
+        description: "",
       })
     }
-    setOpen(false);
+  }
+
+  function onloadImageUpload(event) {
+    imageValue = event[0].file;
+    console.log(event[0].file);
+    setAddformData({...addformData, brandImage: event[0].file});
+}
+
+  function onloadEditImageUpload(event) {
+    imageValue = event[0].file;
+    setEditformData({...editformData, brandImage: event[0].file});
   }
 
   const data = brandData;
@@ -299,8 +225,8 @@ const ProdcutBrand = () => {
       title: 'Name', field: 'brand_name',
     },
     {
-      title: 'Image', field: 'image',
-    },
+      title: 'Image', field: 'brand_image', render : rowData => <img src={`${Config.baseURL}/uploads/${rowData.brand_image}`} style={{ width: 40, borderRadius: '50%' }} />
+  },
     {
       title: 'Description', field: 'brand_description',
     },
@@ -318,12 +244,12 @@ const ProdcutBrand = () => {
     },
     {
       icon: 'edit',
-      tooltip: 'edit User',
+      tooltip: 'edit Brand',
       onClick: (event, rowData) => handleClickEditDailogOpen(rowData, event)
     },
     {
       icon: 'delete',
-      tooltip: 'Delete User',
+      tooltip: 'Delete Brand',
       onClick: (event, rowData) => handleClickDelete(rowData, event)
     },
   ]
@@ -332,10 +258,6 @@ const ProdcutBrand = () => {
     setOpen(true);
   }
 
-  function onloadImageUpload(a) {
-    console.log(a)
- }
- 
   return (
     <div className="m-sm-30">
       <div className="mb-sm-30">
@@ -347,7 +269,7 @@ const ProdcutBrand = () => {
         />
       </div><hr></hr>
       <div>
-        <Dialog 
+        <Dialog
           maxWidth={'md'}
           fullScreen={fullScreen}
           open={open}
@@ -359,11 +281,11 @@ const ProdcutBrand = () => {
           </DialogTitle>
           <DialogContent>
             <div className="row">
-              
-              <div className="col-sm-6">
+
+              <div className="col-sm-8">
                 <label> Brand Name <sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   onChange={onLoadAddFormFieldChange}
                   name="name"
@@ -371,24 +293,22 @@ const ProdcutBrand = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
+              <div className="col-sm-4">
                 <label>Brand Priority<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
-
                   onChange={onLoadAddFormFieldChange}
                   name="priority"
                   value={addformData.priority}
                 />
               </div>
 
-              <div className="col-sm-6">
-                <label>Brand Description<sup>*</sup></label>
+              <div className="col-sm-8">
+                <label>Brand Description</label>
                 <textarea
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   rows="2"
-
                   name="description"
                   onChange={onLoadAddFormFieldChange}
                   value={addformData.description}
@@ -396,40 +316,24 @@ const ProdcutBrand = () => {
               </div>
 
               <div className="col-sm-4">
-                                {(() => {
-                                    if (true) {
-                                        return (
-                                            <div>
-                                                <label> Click  <sup>*</sup></label>
-                                                <Paper component="form" className={classes.root}>
-                                                    <ImageUpload onloadImageUpload={onloadImageUpload} />
-                                                </Paper>
-                                            </div>
-                                        )
-                                    } else {
-                                        return (
-                                            <div>
-                                                <label>  Click <sup>*</sup></label>
-                                                <ImageUpload onloadImageUpload={onloadImageUpload} />
-                                                <br></br>
-                                            </div>
-                                        )
-                                    }
-                                })()}
-                            </div>
-            </div>
+                <label>Click or Drop here<sup>*</sup></label>
+                <Paper component="form">
+                  <ImageUpload onloadImageUpload={onloadImageUpload} />
+                </Paper>
+              </div>
+            </div><hr></hr>
             <DialogActions>
               <Button onClick={handleClose} variant="contained" color="secondary">
                 Cancel
-                                    </Button>
+              </Button>
               <Button onClick={handleFormSubmit} variant="contained" color="primary" autoFocus>
                 Submit
-                                    </Button>
+              </Button>
             </DialogActions>
           </DialogContent>
         </Dialog>
 
-        <Dialog classes={{ paper: classes.dialogPaper }}
+        <Dialog
           fullWidth={true}
           maxWidth={'md'}
           fullScreen={fullScreen}
@@ -443,22 +347,35 @@ const ProdcutBrand = () => {
           <DialogContent>
             <div className="row">
 
-            <div className="col-sm-6">
+              <div className="col-sm-8">
                 <label> Brand Id<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   name="id"
                   readOnly
+                  disabled
                   onChange={onChangeEditFields}
                   value={editformData.id}
                 />
               </div>
 
-              <div className="col-sm-6">
+              <div className="col-sm-4">
+                <label> Brand Priority <sup>*</sup></label>
+                <input
+                  type="text"
+                  className="mb-16 w-100 form-control"
+                  name="priority"
+
+                  onChange={onChangeEditFields}
+                  value={editformData.priority}
+                />
+              </div>
+
+              <div className="col-sm-8">
                 <label> Brand Name<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   name="name"
                   onChange={onChangeEditFields}
@@ -466,98 +383,46 @@ const ProdcutBrand = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
-                <label> Brand Priority <sup>*</sup></label>
-                <input
-                  type="text"
-                  className="mb-16 w-100"
-                  name="priority"
-
-                  onChange={onChangeEditFields}
-                  value={editformData.priority}
-                />
+              <div className="col-sm-4">
+                <label>Status<sup>*</sup></label>
+                <div className={classes.radiobtn}>
+                  <label>Active</label>
+                  <Radio
+                    checked={selectedValue === '1'}
+                    onChange={handleChange}
+                    value="1"
+                    name="status"
+                  />
+                  <label>InActive</label>
+                  <Radio
+                    checked={selectedValue === '0'}
+                    onChange={handleChange}
+                    value="0"
+                    name="status"
+                  />
+                </div>
               </div>
-              <div className="col-sm-6">
-                <label>Brand Description<sup>*</sup></label>
-                <textarea
-                  className="mb-16 w-100"
-                  rows="2"
 
+              <div className="col-sm-8">
+                <label>Brand Description</label>
+                <textarea
+                  className="mb-16 w-100 form-control"
+                  rows="2"
                   name="description"
                   onChange={onChangeEditFields}
                   value={editformData.description}
                 />
               </div>
-              <div className="col-sm-6">
-                <label>Status<sup>*</sup></label>
-                <div className={classes.radiobtn}>
-                  <label>Active</label>
-                  <Radio
-                    checked={selectedValue.active === '1'}
-                    onChange={handleChange}
-                    value={selectedValue.active}
-                    name="active"
-                    inputProps={{ "aria-label": "active" }}
-                  />
-                  <label>Inactive</label>
-                  <Radio
-                    checked={selectedValue.inactive === '0'}
-                    onChange={handleChange}
-                    value={selectedValue.inactive}
-                    name="inactive"
-                    inputProps={{ "aria-label": "inactive" }}
-                  />
-                </div>
-              </div>
 
-              <div className="col-sm-6">
-                {(() => {
-                  if (true) {
-                    return (
-                      <div>
-                        <label>Image Url<sup>*</sup></label>
-                        <Paper component="form" className={classes.root}>
-                          <InputBase
-                            placeholder="enter image url"
-                            value={imgUrl.imageUrl}
-                            name="imageUrl"
-                            className="mb-16 w-100"
-                            onChange={onChangeimgUrl}
-                            inputProps={{ 'aria-label': 'Image Url' }}
-                          />
-                          <IconButton
-                            className={classes.iconButton} aria-label="search" onClick={() => onloadClearInputField()}>
-                            <Icon color="primary" >close</Icon>
-                          </IconButton>
-                        </Paper>
-
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div>
-                        <label>Image Upload<sup>*</sup></label><br></br>
-                        <ImageUploader
-                          fileContainerStyle={{
-                            padding: "0",
-                            border: "1px solid grey",
-                          }}
-                          withIcon={false}
-                          withPreview={true}
-                          withLabel={false}
-                          singleImage={true}
-                          buttonText='Upload image'
-                          onChange={onDropPrimary}
-                          imgExtension={['.jpg', '.gif', '.png', '.gif']}
-                          maxFileSize={5242880}
-                        /><br></br>
-                      </div>
-                    )
-                  }
-                })()}
+              <div className="col-sm-4">
+                <label>Click or Drop here<sup>*</sup></label>
+                <Paper component="form">
+                  <ImageUpload onloadImageUpload={onloadEditImageUpload} />
+                </Paper>
               </div>
             </div>
-          </DialogContent>
+          </DialogContent><hr></hr>
+
           <DialogActions>
             <Button onClick={handleClose} variant="contained" color="secondary">
               Cancel
@@ -585,7 +450,7 @@ const ProdcutBrand = () => {
           </DialogContent>
 
           <DialogActions>
-            <Button onClick={alertHandleClose} color="primary" autoFocus>
+            <Button onClick={alertHandleClose} variant="contained" color="primary" autoFocus>
               OK
                     </Button>
           </DialogActions>

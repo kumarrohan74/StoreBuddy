@@ -8,7 +8,7 @@ import {
     Button,
 
 } from "@material-ui/core";
-import axios from 'axios';
+import Config from '../../config';
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -18,10 +18,9 @@ import { useTheme } from "@material-ui/core/styles";
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
 import Radio from "@material-ui/core/Radio";
-
+import axios from 'axios';
 import { useEffect } from "react";
 import { useLocation, useHistory } from "react-router-dom";
-
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
 import DialogContentText from "@material-ui/core/DialogContentText";
@@ -35,51 +34,40 @@ const useStyles = makeStyles(theme => ({
         borderRadius: '4px',
     }
 }));
-
 let addingProduct = {};
 const PrdoductCategory = () => {
 
     const location = useLocation();
     const history = useHistory();
-
-    // useEffect(() => {
-    //     addingCategory = location.state;
-    //     if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
-    //         setOpen(true);
-    //     }
-
-    // }, [location])
-
+    const [productData, setProductData] = React.useState([]);
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
+    React.useEffect(() => {
+        addingProduct = location.state;
+            if ((location.state != null || location.state != undefined) && (addingProduct != null || addingProduct != undefined)) {
+                setOpen(true);
+            }
+        const sendRequest = async () => {
+            const response = await fetch(`${Config.baseURL}/v1/getproduct`);
+            const responseData = await response.json();
+            if(JSON.stringify(responseData) != JSON.stringify(productData))
+            {
+                setProductData(responseData);
+            }
+           console.log(responseData);
+        };
+        sendRequest();
+    },[Location]);
 
-    const [productData, setProductData] = React.useState([]);
 
-  React.useEffect(() => {
-    addingProduct = location.state;
-        if ((location.state != null || location.state != undefined) && (addingProduct != null || addingProduct != undefined)) {
-            setOpen(true);
-        }
-    const sendRequest = async () => {
-        const response = await fetch("http://localhost:5000/getproduct");
-        const responseData = await response.json();
-        if(JSON.stringify(responseData) != JSON.stringify(productData))
-        {
-            setProductData(responseData);
-        }
-       console.log(responseData);
-    };
-    sendRequest();
-},[Location]);
 
     function handleClickEditDailogOpen(data) {
         alert (JSON.stringify(data))
     }
 
-    const data = productData;
     function handleClickDelete(event,data)
     {
         
@@ -93,7 +81,7 @@ const PrdoductCategory = () => {
     const headers = {
         "Access-Control-Allow-Origin": "*",
       }
-     axios.post("http://localhost:5000/deleteproduct", data ,{headers}).then(() => {
+     axios.post(`${Config.baseURL}/v1/deleteproduct`, data ,{headers}).then(() => {
        console.log("sent");
      }).catch(() => {
         console.log("Something went wrong. Plase try again later");
@@ -101,6 +89,9 @@ const PrdoductCategory = () => {
 
     }
 
+
+
+    const data = productData;
     const columns = [
         {
             title: 'Product id', field: 'product_id',

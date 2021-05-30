@@ -3,12 +3,10 @@ import { Breadcrumb } from "matx";
 import { makeStyles } from "@material-ui/core/styles";
 import {
     Card,
-    Icon,
-    IconButton,
     Button,
 
 } from "@material-ui/core";
-import axios from 'axios';
+import Config from '../../config';
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -18,55 +16,16 @@ import { useTheme } from "@material-ui/core/styles";
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
 import Radio from "@material-ui/core/Radio";
-
+import axios from 'axios';
 import { useEffect } from "react";
 import { useLocation, useHistory } from "react-router-dom";
-
 import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
 import DialogContentText from "@material-ui/core/DialogContentText";
 import MaterialTable from 'material-table';
-import ImageUploader from 'react-images-upload';
 import { ImageUpload } from "app/views/uploadImage/ImageUpload";
 
-const useStyles = makeStyles(theme => ({
 
-    root: {
-        padding: '2px 4px',
-        display: 'flex',
-        alignItems: 'center',
-        border: '1px solid silver'
-        // width: 400,
-    },
-    input: {
-        marginLeft: theme.spacing(1),
-        flex: 1,
-    },
-    iconButton: {
-        padding: 10,
-    },
-    divider: {
-        height: 28,
-        margin: 4,
-    },
-    button: {
-        // margin: '0px 400px 0px 0px'
-        float: 'right',
-        marginRight: '10px'
-    },
-    headerName: {
-        float: 'left',
-        padding: '0px 0px 0px 10px'
-    },
-    // input: {
-    //     display: "none"
-    // },
-    dialogPaper: {
-        // height: '400px'
-    },
-    uploadfile: {
-        width: '440px'
-    },
+const useStyles = makeStyles(theme => ({
     radiobtn: {
         border: '1px solid silver',
         paddingLeft: '10px',
@@ -74,29 +33,21 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-
-
 let addingCategory = {};
+let imageValue = [];
 const PrdoductCategory = () => {
-
-    // const {
-    //     values,
-    //     setValues,
-    //     onloadImageUpload
-    // } = ImageUpload()
 
     const location = useLocation();
     const history = useHistory();
     const [isLoading, setIsLoading] = React.useState(false);
     const [categoryData, setCategoryData] = React.useState([]);
-
     useEffect(() => {
         addingCategory = location.state;
         if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
             setOpen(true);
         }
-         const sendRequest = async () => {
-            const response = await fetch("http://localhost:5000/getcategory");
+        const sendRequest = async () => {
+            const response = await fetch(`${Config.baseURL}/v1/getcategory`);
             const responseData = await response.json();
             if(JSON.stringify(responseData) !=JSON.stringify(categoryData))
             {
@@ -107,7 +58,7 @@ const PrdoductCategory = () => {
         };
        
         sendRequest();
-    },[Location])
+    }, [location])
 
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
@@ -115,33 +66,14 @@ const PrdoductCategory = () => {
 
     const [alertDailog, setAlertDailog] = React.useState(false);
 
-    const [uploadPicture, setUploadPicture] = React.useState([]);
-
-    function handleClickOpen() {
-        setOpen(true);
-    }
-
     function handleClose() {
         setOpen(false);
-    }
-
-    const [imgUrl, setImageUrl] = React.useState({
-        imageUrl: ''
-    });
-
-    const onDropPrimary = (uploadPictures) => {
-        console.log(uploadPictures)
-        setUploadPicture({
-            ...uploadPicture,
-            uploadPictures
-        });
     }
 
     const [editformData, setEditformData] = React.useState({
         categoryId: '',
         categoryName: '',
         categoryPriority: '',
-        categoryStatus: '',
         categoryDescription: '',
     })
 
@@ -164,26 +96,12 @@ const PrdoductCategory = () => {
         checked: {}
     })(props => <Radio color="default" {...props} />);
 
-    const [selectedValue, setSelectedValue] = React.useState({
-        active: '',
-        inactive: ''
-    });
+    const [selectedValue, setSelectedValue] = React.useState('1');
 
-    function handleChange(event) {
-        if (event.target.value === '1') {
-            setSelectedValue({
-                active: '1',
-            })
-        } else {
-            setSelectedValue({
-                inactive: '0',
-            })
-        }
-    }
-
-    function handleClickOpen() {
-        setOpen(true);
-    }
+    const handleChange = (event) => {
+        setSelectedValue(event.target.value);
+        console.log(selectedValue)
+;    };
 
     function onLoadcategoryAdd(event) {
         setAddCategoryform({
@@ -214,11 +132,8 @@ const PrdoductCategory = () => {
             categoryStatus: data.status,
             categoryDescription: data.category_description,
             categoryId: data.category_id,
+            categoryImage: data.category_image,
             isDelete: data.isDelete
-        })
-
-        setImageUrl({
-            imageUrl: data.image
         })
 
         if (data.status == 1) {
@@ -230,93 +145,60 @@ const PrdoductCategory = () => {
                 inactive: '0',
             })
         }
+
+        setSelectedValue(data.status.toString())
         setEditDailogOpen(true);
     }
 
-    function handleClickDelete(event,data)
-    {
-        
-        event.isDelete = true;
-       
-        const formdata = {editformData};
-        console.log("event");
-        
-    if (selectedValue.active == 1)
-    {
-      event.categoryStatus = 1;
-    }
-    else if(selectedValue.inactive == 0)
-    {
-        event.categoryStatus = 0;
-    }
-    console.log(event);
-    const headers = {
-        "Access-Control-Allow-Origin": "*",
-      }
-     axios.post("http://localhost:5000/deletecategory", event ,{headers}).then(() => {
-       console.log("sent");
-     }).catch(() => {
-        console.log("Something went wrong. Plase try again later");
-    });
-
-    }
-
-    function onChangeimgUrl(event) {
-        setImageUrl({
-            ...imgUrl,
-            [event.target.name]: event.target.value,
-        })
-    }
-
-    function onloadClearInputField() {
-        setImageUrl({
-            imageUrl: ''
-        })
-    }
-
     function onLoadEditSubmit() {
-        if (editformData.categoryName === "" || editformData.categoryPriority === "" || editformData.categoryDescription === ""
-            ||  editformData.categoryDescription === undefined) {
-            if (imgUrl.imageUrl !== "") {
-                setEditDailogOpen(false);
-                setAlertDailog(false);
-            }else {
-                setEditDailogOpen(true);
-                setAlertDailog(true);
-            }
+        if (editformData.categoryName === "" || editformData.categoryPriority === "" ||
+            imageValue.length === 0) {
+            setEditDailogOpen(true);
+            setAlertDailog(true);
         } else {
+            let editvalue = {
+                value: editformData,
+                status: selectedValue,
+                imageData: imageValue
+            }
+            console.log(editvalue);
+            imageValue = [];
             const data = {editformData};
-            console.log(selectedValue);
-        if (selectedValue.active == 1)
-        {
-          data.editformData.categoryStatus = 1;
-        }
-        else if(selectedValue.inactive == 0)
-        {
-          data.editformData.categoryStatus = 0;
-        }
-        const headers = {
-            "Access-Control-Allow-Origin": "*",
-          }
-         axios.post("http://localhost:5000/editcategory", data ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
-            console.log("Something went wrong. Plase try again later");
-        });
-        
-        setOpen(false);
+            console.log(editformData);
+            var fd_edit = new FormData();
+            fd_edit.append("categoryName",editformData.categoryName);
+            fd_edit.append("categoryDescription", editformData.categoryDescription);
+            fd_edit.append("categoryPriority", editformData.categoryPriority);
+            fd_edit.append("categoryImage", editformData.categoryImage);
+           
+            fd_edit.append("categoryId", editformData.categoryId);
+            fd_edit.append("isDelete", editformData.isDelete);
+            if (selectedValue == 1)
+            {
+                fd_edit.append("categoryStatus", 1);
+            }
+            else if(selectedValue == 0)
+            {
+                fd_edit.append("categoryStatus", 0);
+            }
+            const headers = {
+                "Access-Control-Allow-Origin": "*",
+              }
+             axios.post(`${Config.baseURL}/v1/editcategory`, fd_edit ,{headers}).then(() => {
+               console.log("sent");
+             }).catch(() => {
+                console.log("Something went wrong. Plase try again later");
+            });
             setEditDailogOpen(false);
         }
     };
-
 
     function alertHandleClose() {
         setAlertDailog(false);
     }
 
     function handleFormSubmit() {
-        if ( addCategoryform.addcategoryName === "" || addCategoryform.addcategoryPriority === ""
-            || addCategoryform.addcategoryDescription === "") {
+        if (imageValue.length === 0 || addCategoryform.addcategoryName === "" || addCategoryform.addcategoryPriority === "") {
             setOpen(true)
             setAlertDailog(true);
         } else {
@@ -329,19 +211,53 @@ const PrdoductCategory = () => {
             const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/addcategory", fd ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
-            console.log("Something went wrong. Plase try again later");
-        });
-        
-        setOpen(false);
-
-            setImageUrl({
-                imageUrl: ''
-            })
+            axios.post(`${Config.baseURL}/v1/addcategory`, fd ,{headers}).then(() => {
+            console.log("sent");
+            }).catch(() => {
+                console.log("Something went wrong. Plase try again later");
+            });
+            setOpen(false)
+            imageValue = [];
         }
     }
+
+    function handleClickDelete(event,data)
+    {
+        event.isDelete = true;
+        const formdata = {editformData};
+        if (selectedValue.active == 1)
+        {
+            event.categoryStatus = 1;
+        }
+        else if(selectedValue.inactive == 0)
+        {
+            event.categoryStatus = 0;
+        }
+        const headers = {
+            "Access-Control-Allow-Origin": "*",
+        }
+        axios.post(`${Config.baseURL}/v1/deletecategory`, event ,{headers}).then(() => {
+            console.log("sent");
+        }).catch(() => {
+            console.log("Something went wrong. Plase try again later");
+        });
+    }
+
+    function onLoadAddSubCategory() {
+        setOpen(true);
+    }
+
+    function onloadImageUpload(event) {
+        imageValue = event[0].file;
+        console.log(event[0].file);
+        setAddCategoryform({...addCategoryform, categoryImage: event[0].file});
+    }
+
+    function onloadEditImageUpload(event) {
+        imageValue = event[0].file;
+        setEditformData({...editformData, categoryImage: event[0].file});
+    }
+
     const data = categoryData;
 
     const columns = [
@@ -352,7 +268,7 @@ const PrdoductCategory = () => {
             title: 'Name', field: 'category_name',
         },
         {
-            title: 'Image', field: 'category_image', render : rowData => <img src='http://localhost:5000/uploads/706c6aa297207e719f0c39cacbc61d09.png' style={{ width: 40, borderRadius: '50%' }} />
+            title: 'Image', field: 'category_image', render : rowData => <img src={`${Config.baseURL}/uploads/${rowData.category_image}`} style={{ width: 40, borderRadius: '50%' }} />
         },
         {
             title: 'Description', field: 'category_description',
@@ -374,7 +290,7 @@ const PrdoductCategory = () => {
         },
         {
             icon: 'edit',
-            tooltip: 'edit User',
+            tooltip: 'edit Category',
             onClick: (event, rowData) => handleClickEditDailogOpen(rowData, event)
         },
         {
@@ -383,34 +299,20 @@ const PrdoductCategory = () => {
             onClick: (event, rowData) => handleClickDelete(rowData, event)
         },
     ]
-    function onLoadAddSubCategory() {
-        setOpen(true);
-    }
-
-    function onloadImageUpload(event) {
-       console.log(event.target.files[0]);
-       setAddCategoryform({...addCategoryform, categoryImage: event.target.files[0]});
-    }
 
     return (
         <Card elevation={3} className="pt-20 mb-24">
             <div className="mb-sm-30">
                 <Breadcrumb
                     routeSegments={[
-                        { name: "Category", path: "/products" },
+                        { name: "Category", path: "/products/category" },
                         { name: "Inventory" }
                     ]}
                 />
             </div>
 
             <div>
-                <Card>
-                    {/* <strong className={classes.headerName}>Category List</strong>
-                    <Button variant="contained" className={classes.button} color="primary" onClick={handleClickOpen}>
-                        Add Category
-                </Button> */}
-                </Card>
-                <Dialog classes={{ paper: classes.dialogPaper }}
+                <Dialog
                     fullWidth={true}
                     maxWidth={'md'}
                     fullScreen={fullScreen}
@@ -426,7 +328,7 @@ const PrdoductCategory = () => {
                             <div className="col-sm-8">
                                 <label> Category Name <sup>*</sup></label>
                                 <input
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     type="text"
                                     onChange={onLoadcategoryAdd}
                                     name="addcategoryName"
@@ -438,9 +340,8 @@ const PrdoductCategory = () => {
                             <div className="col-sm-4">
                                 <label>Category Priority<sup>*</sup></label>
                                 <input
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     type="text"
-
                                     onChange={onLoadcategoryAdd}
                                     name="addcategoryPriority"
                                     value={addCategoryform.addcategoryPriority}
@@ -448,11 +349,10 @@ const PrdoductCategory = () => {
                             </div>
 
                             <div className="col-sm-8">
-                                <label>Description<sup>*</sup></label>
+                                <label>Description</label>
                                 <textarea
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     rows="2"
-
                                     name="addcategoryDescription"
                                     onChange={onLoadcategoryAdd}
                                     value={addCategoryform.addcategoryDescription}
@@ -460,28 +360,12 @@ const PrdoductCategory = () => {
                             </div>
 
                             <div className="col-sm-4">
-                                {(() => {
-                                    if (true) {
-                                        return (
-                                            <div>
-                                                <label> Click  <sup>*</sup></label>
-                                                <Paper component="form" className={classes.root}>
-                                                    <input type="file" onChange={onloadImageUpload} name="categoryImage" />
-                                                </Paper>
-                                            </div>
-                                        )
-                                    } else {
-                                        return (
-                                            <div>
-                                                <label>  Click <sup>*</sup></label>
-                                                <ImageUpload onloadImageUpload={onloadImageUpload} />
-                                                <br></br>
-                                            </div>
-                                        )
-                                    }
-                                })()}
+                                <label>Click or Drop here<sup>*</sup></label>
+                                <Paper component="form">
+                                    <ImageUpload onloadImageUpload={onloadImageUpload} />
+                                </Paper>
                             </div>
-                        </div>
+                        </div><hr></hr>
                         <DialogActions>
                             <Button onClick={handleClose} variant="contained" color="secondary">
                                 Cancel
@@ -493,7 +377,7 @@ const PrdoductCategory = () => {
                     </DialogContent>
                 </Dialog>
 
-                <Dialog classes={{ paper: classes.dialogPaper }}
+                <Dialog
                     fullWidth={true}
                     maxWidth={'md'}
                     fullScreen={fullScreen}
@@ -504,14 +388,13 @@ const PrdoductCategory = () => {
                     <DialogTitle id="responsive-dialog-title">
                         {"Add Category"}
                     </DialogTitle>
-                   
-                   <DialogContent>
-                        <div className="row">
 
-                            <div className="col-sm-6">
+                    <DialogContent>
+                        <div className="row">
+                            <div className="col-sm-8">
                                 <label> Category Id<sup>*</sup></label>
                                 <input
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     type="text"
                                     name="categoryId"
                                     readOnly
@@ -521,10 +404,21 @@ const PrdoductCategory = () => {
                                 />
                             </div>
 
-                            <div className="col-sm-6">
+                            <div className="col-sm-4">
+                                <label> Category Priority <sup>*</sup></label>
+                                <input
+                                    type="text"
+                                    className="mb-16 w-100 form-control"
+                                    name="categoryPriority"
+                                    onChange={onChangeEditFields}
+                                    value={editformData.categoryPriority}
+                                />
+                            </div>
+
+                            <div className="col-sm-8">
                                 <label> Category Name<sup>*</sup></label>
                                 <input
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     type="text"
                                     name="categoryName"
                                     onChange={onChangeEditFields}
@@ -532,86 +426,45 @@ const PrdoductCategory = () => {
                                 />
                             </div>
 
-                            <div className="col-sm-6">
-                                <label> Category Priority <sup>*</sup></label>
-                                <input
-                                    type="text"
-                                    className="mb-16 w-100"
-                                    name="categoryPriority"
-
-                                    onChange={onChangeEditFields}
-                                    value={editformData.categoryPriority}
-                                />
-                            </div>
-                            <div className="col-sm-6">
-
+                            <div className="col-sm-4">
                                 <label>Status<sup>*</sup></label>
                                 <div className={classes.radiobtn}>
                                     <label>Active</label>
                                     <Radio
-                                        checked={selectedValue.active === '1'}
+                                        checked={selectedValue === '1'}
                                         onChange={handleChange}
-                                        value={selectedValue.active}
-                                        name="active"
-                                        inputProps={{ "aria-label": "active" }}
+                                        value="1"
+                                        name="status"
                                     />
-                                    <label>Inactive</label>
+                                    <label>InActive</label>
                                     <Radio
-                                        checked={selectedValue.inactive === '0'}
+                                        checked={selectedValue === '0'}
                                         onChange={handleChange}
-                                        value={selectedValue.inactive}
-                                        name="inactive"
-                                        inputProps={{ "aria-label": "inactive" }}
+                                        value="0"
+                                        name="status"
                                     />
                                 </div>
 
                             </div>
-                            <div className="col-sm-6">
-                                <label>Description<sup>*</sup></label>
+                            <div className="col-sm-8">
+                                <label>Description</label>
                                 <textarea
-                                    className="mb-16 w-100"
+                                    className="mb-16 w-100 form-control"
                                     rows="2"
-
                                     name="categoryDescription"
                                     onChange={onChangeEditFields}
                                     value={editformData.categoryDescription}
                                 />
                             </div>
 
-                            <div className="col-sm-6">
-                                {(() => {
-                                    if (true) {
-                                        return (
-                                            <div>
-                                                <label>Image Url<sup>*</sup></label>
-                                                <Paper component="form" className={classes.root}>
-                                                    <InputBase
-                                                        placeholder="enter image url"
-                                                        value={imgUrl.imageUrl}
-                                                        name="imageUrl"
-                                                        className="mb-16 w-100"
-                                                        onChange={onChangeimgUrl}
-                                                        inputProps={{ 'aria-label': 'Image Url' }}
-                                                    />
-                                                    <IconButton
-                                                        className={classes.iconButton} aria-label="search" onClick={() => onloadClearInputField()}>
-                                                        <Icon color="primary" >close</Icon>
-                                                    </IconButton>
-                                                </Paper>
-                                            </div>
-                                        )
-                                    } else {
-                                        return (
-                                            <div>
-                                                <label>Image Upload<sup>*</sup></label><br></br>
-                                                <ImageUpload />
-                                            </div>
-                                        )
-                                    }
-                                })()}
+                            <div className="col-sm-4">
+                                <label>Click or Drop here<sup>*</sup></label>
+                                <Paper component="form">
+                                    <ImageUpload onloadImageUpload={onloadEditImageUpload} />
+                                </Paper>
                             </div>
                         </div>
-                    </DialogContent>
+                    </DialogContent><hr></hr>
                     <DialogActions>
                         <Button onClick={handleClose} variant="contained" color="secondary">
                             Cancel
@@ -621,7 +474,7 @@ const PrdoductCategory = () => {
                     </Button>
                     </DialogActions>
                 </Dialog>
-            
+
             </div>
             <div>
 
@@ -641,7 +494,7 @@ const PrdoductCategory = () => {
                     </DialogContent>
 
                     <DialogActions>
-                        <Button onClick={alertHandleClose} color="primary" autoFocus>
+                        <Button onClick={alertHandleClose} variant="contained" color="primary" autoFocus>
                             OK
                     </Button>
                     </DialogActions>

@@ -1,6 +1,7 @@
 import React from "react";
 import { Breadcrumb } from "matx";
 import { makeStyles } from "@material-ui/core/styles";
+import Config from '../../config';
 import {
   Card,
   Icon,
@@ -43,24 +44,39 @@ const PrdoductDetails = () => {
     history.push("/products/addproduct");
   }
 
-  const [productData, setProductData] = React.useState([]);
+  const productList = [
+    {
+      imgUrl: "/assets/images/products/headphone-2.jpg",
+      name: "earphone",
+      price: 100,
+      available: 15
+    },
+    {
+      imgUrl: "/assets/images/products/headphone-3.jpg",
+      name: "earphone",
+      price: 1500,
+      available: 30
+    },
+    {
+      imgUrl: "/assets/images/products/iphone-2.jpg",
+      name: "iPhone x",
+      price: 1900,
+      available: 35
+    },
+    {
+      imgUrl: "/assets/images/products/iphone-1.jpg",
+      name: "iPhone x",
+      price: 100,
+      available: 0
+    },
+    {
+      imgUrl: "/assets/images/products/headphone-3.jpg",
+      name: "Head phone",
+      price: 1190,
+      available: 5
+    }
+  ];
 
-  React.useEffect(() => {
-    console.log("check");
-    const sendRequest = async () => {
-        const response = await fetch("http://localhost:5000/getproduct");
-        const responseData = await response.json();
-        if(JSON.stringify(responseData) != JSON.stringify(productData))
-        {
-            setProductData(responseData);
-        }
-       
-    };
-    sendRequest();
-});
-
-  const productList = productData;
-  console.log(productList);
   return (
     <Card elevation={3} className="pt-20 mb-24">
       <div className="mb-sm-30">

@@ -11,8 +11,9 @@ import {
     Button,
 } from "@material-ui/core";
 import axios from 'axios';
+import Config from '../../config';
 import { Slide } from '@progress/kendo-react-animation';
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -41,10 +42,13 @@ var allSKUList = new Array();
 var showDailog = false;
 
 const ProductSKUAddition = (props) => {
-    console.log(props)
     const [openskuaddition, SetOpenskuaddition] = React.useState(true);
 
-    useEffect(() => {
+    const history = useHistory();
+    const classes = useStyles();
+    const location = useLocation();
+    
+    useEffect(() => {  
         if (openskuaddition === true) {
             onEnter(0)
             SetOpenskuaddition(false);
@@ -65,8 +69,6 @@ const ProductSKUAddition = (props) => {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-    const history = useHistory();
-    const classes = useStyles();
     const [selectedValue, setSelectedValue] = React.useState({
         no: '',
         yes: '1'
@@ -115,24 +117,25 @@ const ProductSKUAddition = (props) => {
             addSkuValues
         })
 
-        console.log(addSkuValues);
-        if(selectedValue.yes == 1)
-        {
-            setAddSkuValues(addSkuValues.quantityEditable = 1)
-        }
-        if(selectedValue.no == 0)
-        {
-            setAddSkuValues(addSkuValues.quantityEditable = 0)
-        }
         if (event !== 0) {
-            if (addSkuValues.pakageSize === "" || addSkuValues.productMrp === "" ||
+            if (addSkuValues.packageSize === "" || addSkuValues.productMrp === "" ||
                 selectedValue.yes === "1" && addSkuValues.qtySkumf === "") {
                 setOpen(true);
                 showDailog = true;
             } else {
+                const data = addSkuValues;
+                data["product_id"] = history.location.state.prodId;
+                const headers = {
+                    "Access-Control-Allow-Origin": "*",
+                  }
+                 axios.post(`${Config.baseURL}/v1/addsku`, data ,{headers}).then(() => {
+                   console.log("sent");
+                 }).catch(() => {
+                    console.log("Something went wrong. Plase try again later");
+                });
                 allSKUList.push(addSkuValues);
                 setAddSkuValues({
-                    pakageSize: '',
+                    packageSize: '',
                     productMrp: '',
                     skuCode: '',
                     strikePrice: '',
@@ -140,32 +143,8 @@ const ProductSKUAddition = (props) => {
                     qtySkumf: '',
                     qtyPriceper: ''
                 })
-                setAddSkuValues({
-                    ...addSkuValues,
-                    product_name: history.location.state.formData.productName
-                })
-                const data = addSkuValues;
-       console.log("rohan");
-       console.log(history.location.state.formData);
-        console.log(data);
-        console.log("vaathi coming");
-        console.log(history.location.state.formData.productName);
-        data["product_id"] = history.location.state.prodId;
-        console.log("skuuuuu");
-        console.log(data);
-        const headers = {
-            "Access-Control-Allow-Origin": "*",
-          }
-         axios.post("http://localhost:5000/addsku", data ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
-            console.log("Something went wrong. Plase try again later");
-        });
-                
+                setOpen(false);
             }
-
-            setOpen(false);
-            
         }
     };
 
@@ -181,7 +160,8 @@ const ProductSKUAddition = (props) => {
     }
 
     function onLoadSubmitSKU() {
-       
+        console.log(location);
+        console.log(allSKUList);
     }
 
     const handleClose = () => {
@@ -199,7 +179,7 @@ const ProductSKUAddition = (props) => {
                             <Form.Control type="text"
                                 placeholder="Package Size "
                                 name="packageSize"
-                                value={addSkuValues.pakageSize}
+                                value={addSkuValues.packageSize}
                                 onChange={onChangeSkuAddition} />
                         </Form.Group>
                     </div>
@@ -354,7 +334,7 @@ const ProductSKUAddition = (props) => {
                             aria-labelledby="responsive-dialog-title"
                         >
                             <DialogTitle id="responsive-dialog-title">
-                                {"Alter Message !! "}
+                                {"Alert Message !! "}
                             </DialogTitle>
                             <DialogContent>
                                 <DialogContentText>

@@ -5,8 +5,9 @@ import makeAnimated from 'react-select/animated';
 import { makeStyles } from "@material-ui/core/styles";
 import Select from 'react-select';
 import { Breadcrumb } from "matx";
+import Config from '../../config';
 import { ValidatorForm } from "react-material-ui-form-validator";
-import { useLocation, useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useEffect, useState, setState } from "react";
 import axios from 'axios';
 import ImageUploader from 'react-images-upload';
@@ -15,6 +16,7 @@ import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState } from 'draft-js';
 import SKUEdit from '../sku-addition/SKUEdit';
 import { ContentState, convertToRaw } from 'draft-js';
+
 import {
     Card,
     Grid,
@@ -68,7 +70,6 @@ const dropdwonstyle = {
 
 
 
-
 const mappingBuilding_wise = [
     {
         Name: 'Locality 1',
@@ -113,7 +114,7 @@ function mappingBuildingList_wise() {
 
 let editingAll = {};
 const EditProduct = (props) => {
-    
+    console.log(props);
 
     const {product_name,category,sub_category,sku_size,status,stock_qty,stock_update} = props.location.state.name;
 
@@ -125,8 +126,24 @@ const EditProduct = (props) => {
     const location = useLocation();
     const history = useHistory();
     
-
-    
+    const data = history.location.state.name;
+    const [formData, setformData] = React.useState({
+        cgst: data.cgst,
+        igst: data.igst,
+        sgst: data.sgst,
+        product_locality: data.locality,
+        product_alias: data.product_alias,
+        product_brand: data.brand,
+        product_id: data.product_id,
+        product_name: data.product_name,
+        product_priority: data.product_priority,
+        product_status: data.status,
+        product_category: data.category,
+        product_subcategory: data.sub_category,
+        subscription_type: data.subscription_type,
+        product_description: data.product_description,
+        isDelete : data.isDelete
+    })
     const [isLoadingCategory, setIsLoadingCategory] = React.useState(false);
     const [isLoadingSubCategory, setIsLoadingSubCategory] = React.useState(false);
     const [isLoadingBrand, setIsLoadingBrand] = React.useState(false);
@@ -135,31 +152,39 @@ const EditProduct = (props) => {
     const [brandData, setBrandData] = React.useState([]);
     const [optionSelectData, setOptionSelectData] = React.useState({ })
 
+    function handleChange(event) {
+        // event.persist();
+        setformData({
+            ...formData,
+            [event.target.name]: event.target.value,
+        });
+    }
+
     const onEditorStateChange = (editorState) => {
         convertContentToHTML();
 
         setEditorState(editorState);
     };
 
-
     const convertContentToHTML = () => {
         let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
         var stringParsed = currentContentAsHTML.blocks[0].text;
         setformData({ ...formData, productDescription: stringParsed});
       }
-    useEffect(() => {
+
+      useEffect(() => {
         editingAll = location.state;
         if ((location.state != null || location.state != undefined) && (editingAll != null || editingAll != undefined)) {
             setOpen(true);
         }
         const sendRequest = async () => {
-            const response_category = await fetch("http://localhost:5000/getcategory");
+            const response_category = await fetch(`${Config.baseURL}/v1/getcategory`);
             const responseData_category = await response_category.json();
 
-            const response_subcategory= await fetch("http://localhost:5000/getsubcategory");
+            const response_subcategory= await fetch(`${Config.baseURL}/v1/getsubcategory`);
             const responseData_subcategory = await response_subcategory.json();
 
-            const response_brand= await fetch("http://localhost:5000/getbrand");
+            const response_brand= await fetch(`${Config.baseURL}/v1/getbrand`);
             const responseData_brand = await response_brand.json();
 
             
@@ -174,17 +199,10 @@ const EditProduct = (props) => {
                 setIsLoadingBrand(true);
                
             }
-
-           /*if(JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData))
-            {
-                setSubCategoryData(responseData_subcategory);
-                setIsLoadingSubCategory(true);
-            }*/
         };
         sendRequest();
 
     },[Location]);
-
 
     const addNewCatButton = [
         {
@@ -238,62 +256,31 @@ const EditProduct = (props) => {
         return (isLoadingBrand && addNewBrandButton.concat(productBrand).map(data => ({ label: data.brand_name, value: data.Id, State: data.State })))
     }
 
-
-    function handleChange(event) {
-        // event.persist();
-        setformData({
-            ...formData,
-            [event.target.name]: event.target.value,
-        });
-    }
-    
     function handleSubmit() {
         const data = {formData};
+        console.log(formData);
         const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/editproduct", data ,{headers}).then(() => {
+         axios.post(`${Config.baseURL}/v1/editproduct`, data ,{headers}).then(() => {
            console.log("sent");
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
-        
-        
-        }
-    
-    
+    };
 
     const classes = useStyles();
     
-   
-    const data = history.location.state.name;
-    const [formData, setformData] = React.useState({
-       cgst: data.cgst,
-       igst: data.igst,
-       sgst: data.sgst,
-       product_locality: data.locality,
-       product_alias: data.product_alias,
-       product_brand: data.brand,
-       product_id: data.product_id,
-       product_name: data.product_name,
-       product_priority: data.product_priority,
-       product_status: data.status,
-       product_category: data.category,
-       product_subcategory: data.sub_category,
-       subscription_type: data.subscription_type,
-       product_description: data.product_description,
-       isDelete : data.isDelete
-    })
-    function onSelectOption(event,data) {
-        
     
+
+    function onSelectOption(event) {
         if (event != null || event != undefined) {
             for (let i = 0; i < event.length; i++) {
                 setOptionSelectData({
                     ...optionSelectData,
-                    [event[i].name]: event[i].value,
+                    [event[i].label]: event[i].value,
                 });
-                if (event[i].value == 0 && event[i].State == 0) {
+                if (event[i].value === 0 && event[i].State === 0) {
                     history.push({
                         pathname: '/products/category',
                         // search: '?query=abc',                                                                                                                                           
@@ -302,7 +289,6 @@ const EditProduct = (props) => {
                             id: 0
                         }
                     })
-                    console.log(event);
                     break
                 } else if (event[i].value == 1 && event[i].State == 1) {
                     history.push({
@@ -312,9 +298,8 @@ const EditProduct = (props) => {
                             id: 1
                         }
                     })
-                    console.log(event);
                     break
-                } else if (event[i].value == 2 && event[i].State == 2) {
+                } else if (event[i].value === 2 && event[i].State === 2) {
                     history.push({
                         pathname: '/products/brand',
                         state: {
@@ -322,7 +307,6 @@ const EditProduct = (props) => {
                             id: 2
                         }
                     })
-                    
                     break
                 }
                 else {
@@ -363,10 +347,7 @@ const EditProduct = (props) => {
                     
                 }
             }
-            
-            
         }
-        console.log(formData);
     }
     
     const handleSubscriptionChange = (event) => {
@@ -387,7 +368,7 @@ const EditProduct = (props) => {
             secondryPictures
         });
     }
-   
+
     return (
         <div className="m-sm-30">
             {/* <div className="mb-sm-30">
@@ -457,21 +438,21 @@ const EditProduct = (props) => {
                                 <div className="col-sm-4">
                                     <div className="row">
                                         <label className="col-sm-3">Brand</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_brand, value: formData.product_brand}} options={productBrandList()} onChange={(e) => onSelectOption(e, "brand")} components={animatedComponents}
+                                        <Select className="col-sm-7" defaultValue={{label : formData.product_brand, value: formData.product_brand}}  options={productBrandList()} onChange={onSelectOption} components={animatedComponents}
                                             isMulti name="productBrand" />
                                     </div>
                                 </div>
                                 <div className="col-sm-4">
                                     <div className="row">
                                         <label className="col-sm-3">Category</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_category, value: formData.product_category}} options={productCategorysList()} onChange={(e) => onSelectOption(e, "category")} components={animatedComponents}
+                                        <Select className="col-sm-7" defaultValue={{label : formData.product_category, value: formData.product_category}} options={productCategorysList()} onChange={onSelectOption} components={animatedComponents}
                                             isMulti name="productCategory" />
                                     </div>
                                 </div>
                                 <div className="col-sm-4">
                                     <div className="row">
                                         <label className="col-sm-5">Sub-category</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_subcategory, value: formData.product_subcategory}} options={productSubcategoryList()} onChange={(e) => onSelectOption(e, "subcategory")} components={animatedComponents}
+                                        <Select className="col-sm-7" defaultValue={{label : formData.product_subcategory, value: formData.product_subcategory}} options={productSubcategoryList()} onChange={onSelectOption}
                                             isMulti name="productSubcategory" />
                                     </div>
                                 </div>
@@ -556,7 +537,7 @@ const EditProduct = (props) => {
                                         </FormLabel>
                                     </div>
                                     <div className="col-sm-8 col-md-9 col-12">
-                                        <RadioGroup row aria-label="subscrition" name="subscrition" value={data.subscription_type} onChange={handleSubscriptionChange}>
+                                        <RadioGroup row aria-label="subscrition" name="subscrition" value={formData.subscription_type} onChange={handleSubscriptionChange}>
                                             <FormControlLabel className="col-sm-3" value="Subscribe" control={<Radio />} label="Subscribe" labelPlacement="start" />
                                             <FormControlLabel className="col-sm-6" value="Non-Subscribe" control={<Radio />} label="Non-Subscribe" labelPlacement="start" />
                                         </RadioGroup>
@@ -579,7 +560,7 @@ const EditProduct = (props) => {
                                 <div className="col-sm-12">
                                     <div className="row">
                                         <label className="col-sm-4 col-md-3 col-12">All Locality/Hub/Store</label>
-                                        <Select className="col-sm-6 col-md-9 col-12" defaultValue={{label : formData.product_locality, value: formData.product_locality}}  options={mappingBuildingList_wise()} onChange={onSelectOption} components={animatedComponents}
+                                        <Select className="col-sm-6 col-md-9 col-12" defaultValue={{label : formData.product_locality, value: formData.product_locality}} options={mappingBuildingList_wise()} onChange={onSelectOption} components={animatedComponents}
                                             isMulti name="mappingBuilding_wise" />
                                     </div>
                                 </div>

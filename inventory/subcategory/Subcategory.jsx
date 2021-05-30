@@ -8,56 +8,23 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { makeStyles } from "@material-ui/core/styles";
 import { useTheme } from "@material-ui/core/styles";
+import { useEffect } from "react";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import {
   Button,
-  IconButton,
-  Icon,
 } from "@material-ui/core";
 import axios from 'axios';
+import Config from '../../config';
+import { useLocation, useHistory } from "react-router-dom";
 import { withStyles } from "@material-ui/core/styles";
 import { green } from "@material-ui/core/colors";
-import { useEffect } from "react";
-import { useLocation, useHistory } from "react-router-dom";
 import Radio from "@material-ui/core/Radio";
 import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
 import DialogContentText from "@material-ui/core/DialogContentText";
-import ImageUploader from 'react-images-upload';
 import { ImageUpload } from "app/views/uploadImage/ImageUpload";
+
 const useStyles = makeStyles(theme => ({
 
-  root: {
-    padding: '2px 4px',
-    display: 'flex',
-    alignItems: 'center',
-    border: '1px solid silver'
-  },
-  input: {
-    marginLeft: theme.spacing(1),
-    flex: 1,
-  },
-  iconButton: {
-    padding: 10,
-  },
-  divider: {
-    height: 28,
-    margin: 4,
-  },
-  button: {
-    float: 'right',
-    marginRight: '10px'
-  },
-  headerName: {
-    float: 'left',
-    padding: '0px 0px 0px 10px'
-  },
-  dialogPaper: {
-    // height: '400px'
-  },
-  uploadfile: {
-    width: '440px'
-  },
   radiobtn: {
     border: '1px solid silver',
     paddingLeft: '10px',
@@ -65,6 +32,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
+let imageValue = [];
 let addingSubCategory = {};
 const ProdcutSubCategory = () => {
 
@@ -73,8 +41,9 @@ const ProdcutSubCategory = () => {
   const [editDailogOpen, setEditDailogOpen] = React.useState(false);
   const [subCategoryData, setSubCategoryData] = React.useState([]);
   const [alertDailog, setAlertDailog] = React.useState(false);
-  const [uploadPicture, setUploadPicture] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(false);
+  const location = useLocation();
+  const history = useHistory();
 
   function handleClose() {
     setOpen(false);
@@ -82,15 +51,10 @@ const ProdcutSubCategory = () => {
     setAlertDailog(false);
   }
 
-  const [imgUrl, setImageUrl] = React.useState({
-    imageUrl: ''
-  });
-
   const [editformData, setEditformData] = React.useState({
-    id:'',
+    id: '',
     name: '',
     priority: '',
-    status: '',
     description: '',
   })
 
@@ -100,17 +64,14 @@ const ProdcutSubCategory = () => {
     description: '',
   })
 
-  const location = useLocation();
-  const history = useHistory();
 
   useEffect(() => {
-    
     addingSubCategory = location.state;
     if ((location.state != null || location.state != undefined) && (addingSubCategory != null || addingSubCategory != undefined)) {
         setOpen(true);
     }
     const sendRequest = async () => {
-        const response = await fetch("http://localhost:5000/getsubcategory");
+        const response = await fetch(`${Config.baseURL}/v1/getsubcategory`);
         const responseData = await response.json();
         if(JSON.stringify(responseData) !=JSON.stringify(subCategoryData))
         {
@@ -120,9 +81,9 @@ const ProdcutSubCategory = () => {
         console.log("subcat");
         console.log(responseData);
     };
-    sendRequest();
+      sendRequest();
 
-}, [location]);
+    }, [location]);
 
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -137,22 +98,11 @@ const ProdcutSubCategory = () => {
     checked: {}
   })(props => <Radio color="default" {...props} />);
 
-  const [selectedValue, setSelectedValue] = React.useState({
-    active: '',
-    inactive: ''
-  });
+  const [selectedValue, setSelectedValue] = React.useState('1');
 
-  function handleChange(event) {
-    if (event.target.value === '1') {
-      setSelectedValue({
-        active: '1',
-      })
-    } else {
-      setSelectedValue({
-        inactive: '0',
-      })
-    }
-  }
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
 
   function onLoadSubcategoryAdd(event) {
     setAddSubCategoryform({
@@ -171,26 +121,27 @@ const ProdcutSubCategory = () => {
   function handleClickDelete(event,data)
   {
       event.isDelete = true;
-  const headers = {
+      console.log(event);
+      const headers = {
       "Access-Control-Allow-Origin": "*",
     }
-   axios.post("http://localhost:5000/deletesubcategory", event ,{headers}).then(() => {
-     console.log("sent");
-   }).catch(() => {
-      console.log("Something went wrong. Plase try again later");
-  });
-
+      axios.post(`${Config.baseURL}/v1/deletesubcategory`, event ,{headers}).then(() => {
+      console.log("sent");
+    }).catch(() => {
+        console.log("Something went wrong. Plase try again later");
+    });
   }
 
   function handleClickEditDailogOpen(data) {
     setEditformData({
-      name: data.subcategory_name,
-            priority: data.subcategory_priority,
-            status: data.subcategory_status,
-            description: data.subcategory_description,
-            id: data.subcategory_id
+        name: data.subcategory_name,
+        priority: data.subcategory_priority,
+        status: data.subcategory_status,
+        description: data.subcategory_description,
+        id: data.subcategory_id,
+        subCategoryImage: data.subcategory_image,
+        isDelete: data.isDelete,
     })
-
     if (data.subcategory_status == 1) {
       setSelectedValue({
         active: '1',
@@ -200,98 +151,99 @@ const ProdcutSubCategory = () => {
         inactive: '0',
       })
     }
-
-    setImageUrl({
-      imageUrl: data.image
-    })
-
+    setSelectedValue(data.subcategory_status.toString());
     setEditDailogOpen(true);
   }
 
-  function onChangeimgUrl(event) {
-    setImageUrl({
-      ...imgUrl,
-      [event.target.name]: event.target.value,
-    })
-  }
-
-  function onloadClearInputField() {
-    setImageUrl({
-      imageUrl: ''
-    })
-  }
-
   function onLoadEditSubmit() {
-    if (editformData.name === "" || editformData.priority === "" || editformData.description === ""
-       || editformData.description === undefined) {
-      if (imgUrl.imageUrl !== "") {
-        setEditDailogOpen(false);
-        setAlertDailog(false);
-      } else {
-        setEditDailogOpen(true);
-        setAlertDailog(true);
-      }
+    if (editformData.name === "" || editformData.priority === "" ||
+      imageValue.length === 0) {
+      setEditDailogOpen(true);
+      setAlertDailog(true);
     } else {
+      let editValue = {
+        value: editformData,
+        status: selectedValue,
+        imageData: imageValue
+      }
       const data = {editformData};
-        if (selectedValue.active == 1)
-        {
-          data.editformData.status = 1;
-        }
-        else
-        {
-          data.editformData.status = 0;
-        }
+      var fd_edit = new FormData();
+            fd_edit.append("name",editformData.name);
+            fd_edit.append("description", editformData.description);
+            fd_edit.append("priority", editformData.priority);
+            fd_edit.append("subCategoryImage", editformData.subCategoryImage);
+            fd_edit.append("id", editformData.id);
+            fd_edit.append("isDelete", editformData.isDelete);
+            if (selectedValue == 1)
+            {
+                fd_edit.append("status", 1);
+            }
+            else if(selectedValue == 0)
+            {
+                fd_edit.append("status", 0);
+            }
         console.log(editformData);
         const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/editsubcategory", data ,{headers}).then(() => {
+         axios.post(`${Config.baseURL}/v1/editsubcategory`, fd_edit ,{headers}).then(() => {
            console.log("sent");
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
-        
-        setOpen(false);
+
+      console.log(editValue);
+
       setEditDailogOpen(false);
+      imageValue = [];
     }
-    console.log(editformData);
-    console.log(selectedValue);
-    console.log(imgUrl);
   };
 
   function alertHandleClose() {
     setAlertDailog(false);
   }
 
-  const onDropPrimary = (uploadPictures) => {
-    console.log(uploadPictures)
-    setUploadPicture({
-      ...uploadPicture,
-      uploadPictures
-    });
-  }
-
   function handleFormSubmit() {
-    if ( addSubCategoryform.name === "" || addSubCategoryform.priority === ""
-      || addSubCategoryform.description === "") {
+    if (addSubCategoryform.name === "" || addSubCategoryform.priority === ""
+      || imageValue.length === 0) {
       setOpen(true)
       setAlertDailog(true);
     } else {
-      const data = {addSubCategoryform};
-       
-        
+      setOpen(false)
+      const data = addSubCategoryform;
+      var fd = new FormData();
+      fd.append("name",addSubCategoryform.name);
+      fd.append("description", addSubCategoryform.description);
+      fd.append("priority", addSubCategoryform.priority);
+      fd.append("subCategoryImage", addSubCategoryform.subCategoryImage);
         const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/addsubcategory", data ,{headers}).then(() => {
+         axios.post(`${Config.baseURL}/v1/addsubcategory`, fd ,{headers}).then(() => {
            console.log("sent");
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
-        
-        setOpen(false);
+      imageValue = [];
+      setAddSubCategoryform({
+        name: "",
+        priority: "",
+        description: "",
+      })
     }
   }
+
+  function onloadEditImageUpload(event) {
+    imageValue = event[0].file;
+    console.log(event[0].file);
+    setEditformData({...editformData, subCategoryImage: event[0].file});
+  }
+
+  function onloadImageUpload(event) {
+    imageValue = event[0].file;
+    console.log(event[0].file);
+    setAddSubCategoryform({...addSubCategoryform, subCategoryImage: event[0].file});
+}
 
   const data = subCategoryData;
 
@@ -303,7 +255,7 @@ const ProdcutSubCategory = () => {
       title: 'Name', field: 'subcategory_name',
     },
     {
-      title: 'Image', field: 'image',
+      title: 'Image', field: 'subcategory_image', render : rowData => <img src={`${Config.baseURL}/uploads/${rowData.subcategory_image}`} style={{ width: 40, borderRadius: '50%' }} />
     },
     {
       title: 'Description', field: 'subcategory_description',
@@ -325,24 +277,19 @@ const ProdcutSubCategory = () => {
     },
     {
       icon: 'edit',
-      tooltip: 'edit User',
+      tooltip: 'edit Subcategory',
       onClick: (event, rowData) => handleClickEditDailogOpen(rowData, event)
     },
     {
       icon: 'delete',
-      tooltip: 'Delete User',
+      tooltip: 'Delete Subcategory',
       onClick: (event, rowData) =>handleClickDelete(rowData, event)
     },
   ]
 
-
   function onLoadAddSubCategory() {
     setOpen(true);
   }
-
-  function onloadImageUpload(a) {
-    console.log(a)
- }
 
   return (
     <div className="m-sm-30">
@@ -355,7 +302,7 @@ const ProdcutSubCategory = () => {
         />
       </div><hr></hr>
       <div>
-        <Dialog classes={{ paper: classes.dialogPaper }}
+        <Dialog 
           fullWidth={true}
           maxWidth={'md'}
           fullScreen={fullScreen}
@@ -368,10 +315,10 @@ const ProdcutSubCategory = () => {
           </DialogTitle>
           <DialogContent>
             <div className="row">
-              <div className="col-sm-6">
+              <div className="col-sm-8">
                 <label> Subcategory Name <sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   onChange={onLoadSubcategoryAdd}
                   name="name"
@@ -379,10 +326,10 @@ const ProdcutSubCategory = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
+              <div className="col-sm-4">
                 <label>Subcategory Priority<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
 
                   onChange={onLoadSubcategoryAdd}
@@ -391,10 +338,10 @@ const ProdcutSubCategory = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
-                <label>Subcategory Description<sup>*</sup></label>
+              <div className="col-sm-8">
+                <label>Subcategory Description</label>
                 <textarea
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   rows="2"
 
                   name="description"
@@ -404,40 +351,24 @@ const ProdcutSubCategory = () => {
               </div>
 
               <div className="col-sm-4">
-                                {(() => {
-                                    if (true) {
-                                        return (
-                                            <div>
-                                                <label> Click  <sup>*</sup></label>
-                                                <Paper component="form" className={classes.root}>
-                                                    <ImageUpload onloadImageUpload={onloadImageUpload} />
-                                                </Paper>
-                                            </div>
-                                        )
-                                    } else {
-                                        return (
-                                            <div>
-                                                <label>  Click <sup>*</sup></label>
-                                                <ImageUpload onloadImageUpload={onloadImageUpload} />
-                                                <br></br>
-                                            </div>
-                                        )
-                                    }
-                                })()}
-                            </div>
-            </div>
+                <label>Click or Drop here<sup>*</sup></label>
+                <Paper component="form">
+                  <ImageUpload onloadImageUpload={onloadImageUpload} />
+                </Paper>
+              </div>
+            </div><hr></hr>
             <DialogActions>
               <Button onClick={handleClose} variant="contained" color="secondary">
                 Cancel
-                                    </Button>
+              </Button>
               <Button onClick={handleFormSubmit} variant="contained" color="primary" autoFocus>
                 Submit
-                                    </Button>
+              </Button>
             </DialogActions>
           </DialogContent>
         </Dialog>
 
-        <Dialog classes={{ paper: classes.dialogPaper }}
+        <Dialog 
           fullWidth={true}
           maxWidth={'md'}
           fullScreen={fullScreen}
@@ -451,10 +382,10 @@ const ProdcutSubCategory = () => {
           <DialogContent>
             <div className="row">
 
-            <div className="col-sm-6">
+              <div className="col-sm-8">
                 <label> Subcategory Id<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   name="id"
                   readOnly
@@ -464,10 +395,22 @@ const ProdcutSubCategory = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
+              <div className="col-sm-4">
+                <label> Subcategory Priority <sup>*</sup></label>
+                <input
+                  type="text"
+                  className="mb-16 w-100 form-control"
+                  name="priority"
+
+                  onChange={onChangeEditFields}
+                  value={editformData.priority}
+                />
+              </div>
+
+              <div className="col-sm-8">
                 <label> Subcategory Name<sup>*</sup></label>
                 <input
-                  className="mb-16 w-100"
+                  className="mb-16 w-100 form-control"
                   type="text"
                   name="name"
                   onChange={onChangeEditFields}
@@ -475,98 +418,45 @@ const ProdcutSubCategory = () => {
                 />
               </div>
 
-              <div className="col-sm-6">
-                <label> Subcategory Priority <sup>*</sup></label>
-                <input
-                  type="text"
-                  className="mb-16 w-100"
-                  name="priority"
-
-                  onChange={onChangeEditFields}
-                  value={editformData.priority}
-                />
+              <div className="col-sm-4">
+                <label>Status<sup>*</sup></label>
+                <div className={classes.radiobtn}>
+                  <label>Active</label>
+                  <Radio
+                    checked={selectedValue === '1'}
+                    onChange={handleChange}
+                    value="1"
+                    name="status"
+                  />
+                  <label>InActive</label>
+                  <Radio
+                    checked={selectedValue === '0'}
+                    onChange={handleChange}
+                    value="0"
+                    name="status"
+                  />
+                </div>
               </div>
-              <div className="col-sm-6">
-                <label>Subcategory Description<sup>*</sup></label>
-                <textarea
-                  className="mb-16 w-100"
-                  rows="2"
 
+              <div className="col-sm-8">
+                <label>Subcategory Description</label>
+                <textarea
+                  className="mb-16 w-100 form-control"
+                  rows="2"
                   name="description"
                   onChange={onChangeEditFields}
                   value={editformData.description}
                 />
               </div>
-              <div className="col-sm-6">
-                <label>Status<sup>*</sup></label>
-                <div className={classes.radiobtn}>
-                  <label>Active</label>
-                  <Radio
-                    checked={selectedValue.active === '1'}
-                    onChange={handleChange}
-                    value={selectedValue.active}
-                    name="active"
-                    inputProps={{ "aria-label": "active" }}
-                  />
-                  <label>Inactive</label>
-                  <Radio
-                    checked={selectedValue.inactive === '0'}
-                    onChange={handleChange}
-                    value={selectedValue.inactive}
-                    name="inactive"
-                    inputProps={{ "aria-label": "inactive" }}
-                  />
-                </div>
-              </div>
 
-              <div className="col-sm-6">
-                {(() => {
-                  if (true) {
-                    return (
-                      <div>
-                        <label>Image Url<sup>*</sup></label>
-                        <Paper component="form" className={classes.root}>
-                          <InputBase
-                            placeholder="enter image url"
-                            value={imgUrl.imageUrl}
-                            name="imageUrl"
-                            className="mb-16 w-100"
-                            onChange={onChangeimgUrl}
-                            inputProps={{ 'aria-label': 'Image Url' }}
-                          />
-                          <IconButton
-                            className={classes.iconButton} aria-label="search" onClick={() => onloadClearInputField()}>
-                            <Icon color="primary" >close</Icon>
-                          </IconButton>
-                        </Paper>
-
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <div>
-                        <label>Image Upload<sup>*</sup></label><br></br>
-                        <ImageUploader
-                          fileContainerStyle={{
-                            padding: "0",
-                            border: "1px solid grey",
-                          }}
-                          withIcon={false}
-                          withPreview={true}
-                          withLabel={false}
-                          singleImage={true}
-                          buttonText='Upload image'
-                          onChange={onDropPrimary}
-                          imgExtension={['.jpg', '.gif', '.png', '.gif']}
-                          maxFileSize={5242880}
-                        /><br></br>
-                      </div>
-                    )
-                  }
-                })()}
+              <div className="col-sm-4">
+                <label>Click or Drop here<sup>*</sup></label>
+                <Paper component="form">
+                  <ImageUpload onloadImageUpload={onloadEditImageUpload} />
+                </Paper>
               </div>
             </div>
-          </DialogContent>
+          </DialogContent><hr></hr>
           <DialogActions>
             <Button onClick={handleClose} variant="contained" color="secondary">
               Cancel
@@ -594,7 +484,7 @@ const ProdcutSubCategory = () => {
           </DialogContent>
 
           <DialogActions>
-            <Button onClick={alertHandleClose} color="primary" autoFocus>
+            <Button onClick={alertHandleClose} variant="contained" color="primary" autoFocus>
               OK
                     </Button>
           </DialogActions>

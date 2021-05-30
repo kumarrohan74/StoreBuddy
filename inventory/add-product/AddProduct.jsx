@@ -5,6 +5,7 @@ import makeAnimated from 'react-select/animated';
 import { makeStyles } from "@material-ui/core/styles";
 import Select from 'react-select';
 import { Breadcrumb } from "matx";
+import Config from '../../config';
 import { ValidatorForm } from "react-material-ui-form-validator";
 import { useLocation, useHistory } from "react-router-dom";
 import { useEffect, useState, setState } from "react";
@@ -14,8 +15,7 @@ import { Editor } from "react-draft-wysiwyg";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState } from 'draft-js';
 import { ContentState, convertToRaw } from 'draft-js';
-import { convertToHTML } from 'draft-convert';
-import DOMPurify from 'dompurify';
+
 import {
     Card,
     Grid,
@@ -68,7 +68,6 @@ const dropdwonstyle = {
 
 
 
-
 const mappingBuilding_wise = [
     {
         Name: 'Locality 1',
@@ -109,62 +108,49 @@ function mappingBuildingList_wise() {
     return (mappingBuilding_wise.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
 }
 
-
-
 let addingAll = {};
 const AddProducts = () => {
     const [primaryPicture, setPrimaryPicture] = React.useState([]);
     const [secondryPicture, setSecondryPicture] = React.useState([]);
     const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
     const [subscribe, setSubscribe] = React.useState('Non-Subscribe');
-    const  [convertedContent, setConvertedContent] = useState(null);
-    const location = useLocation();
-    const history = useHistory();
-    var vari = 0;
-    var final_data;
-    const onEditorStateChange = (editorState) => {
-        convertContentToHTML();
-        setEditorState(editorState);
-    };
-
-
-    const convertContentToHTML = () => {
-        let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
-        var stringParsed = currentContentAsHTML.blocks[0].text;
-        setformData({ ...formData, productDescription: stringParsed});
-      }
-
-
-    const [formData, setformData] = React.useState({
-        // productName: "",
-        // productAlias: "",
-        // productPriority: "",
-        // productSGST: "",
-        // productCGST: "",
-    })
-
     const [isLoadingCategory, setIsLoadingCategory] = React.useState(false);
     const [isLoadingSubCategory, setIsLoadingSubCategory] = React.useState(false);
     const [isLoadingBrand, setIsLoadingBrand] = React.useState(false);
     const [categoryData, setCategoryData] = React.useState([]);
     const [subCategoryData, setSubCategoryData] = React.useState([]);
     const [brandData, setBrandData] = React.useState([]);
-    const [open, setOpen] = React.useState(false);
-    const [optionSelectData, setOptionSelectData] = React.useState({ });
     const [prodId, setProdId] = React.useState({});
+    const [open, setOpen] = React.useState(false);
+    const location = useLocation();
+    const history = useHistory();
+    const [formData, setformData] = React.useState({
+    })
+    const onEditorStateChange = (editorState) => {
+        convertContentToHTML();
+        setEditorState(editorState);
+    };
+
+    const convertContentToHTML = () => {
+        let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
+        var stringParsed = currentContentAsHTML.blocks[0].text;
+        setformData({ ...formData, productDescription: stringParsed});
+      }
+    const [optionSelectData, setOptionSelectData] = React.useState({})
+
     useEffect(() => {
         addingAll = location.state;
         if ((location.state != null || location.state != undefined) && (addingAll != null || addingAll != undefined)) {
             setOpen(true);
         }
         const sendRequest = async () => {
-            const response_category = await fetch("http://localhost:5000/getcategory");
+            const response_category = await fetch(`${Config.baseURL}/v1/getcategory`);
             const responseData_category = await response_category.json();
 
-            const response_subcategory= await fetch("http://localhost:5000/getsubcategory");
+            const response_subcategory= await fetch(`${Config.baseURL}/v1/getsubcategory`);
             const responseData_subcategory = await response_subcategory.json();
 
-            const response_brand= await fetch("http://localhost:5000/getbrand");
+            const response_brand= await fetch(`${Config.baseURL}/v1/getbrand`);
             const responseData_brand = await response_brand.json();
 
             
@@ -230,7 +216,7 @@ const AddProducts = () => {
     {
         productBrand = brandData;
     }
-    
+
     function productCategorysList() {
         return (isLoadingCategory && addNewCatButton.concat(productCategory).map(data => ({ label: data.category_name, value: data.Id, State: data.State })))
     }
@@ -243,7 +229,6 @@ const AddProducts = () => {
         return (isLoadingBrand && addNewBrandButton.concat(productBrand).map(data => ({ label: data.brand_name, value: data.Id, State: data.State })))
     }
 
-
     function handleChange(event) {
         // event.persist();
         setformData({
@@ -253,12 +238,26 @@ const AddProducts = () => {
     }
 
     function handleSubmit() {
-        console.log(formData);
-        console.log(optionSelectData);
-        console.log(primaryPicture);
-        console.log(secondryPicture);
         const data = formData;
-        
+        console.log(formData);
+        var fd = new FormData();
+        fd.append("productName",formData.productName);
+        fd.append("productAlias", formData.productAlias);
+        fd.append("primaryImage", primaryPicture);
+        fd.append("secondaryImage", secondryPicture);
+        fd.append("productCGST",formData.productCGST);
+        fd.append("productSGST", formData.productSGST);
+        fd.append("productIGST", formData.productIGST);
+        fd.append("status", formData.status);
+        fd.append("productDescription",formData.productDescription);
+        fd.append("productPriority", formData.productPriority);
+        fd.append("productCategory", formData.productCategory);
+        fd.append("productSubCategory", formData.productSubCategory);
+        fd.append("productMapping",formData.productMapping);
+        fd.append("productLocality", formData.productLocality);
+        fd.append("productBrand", formData.productBrand);
+        fd.append("isDelete", formData.isDelete);
+        fd.append("subscriptionType", subscribe)
         data["subscriptionType"] = subscribe;
         console.log("addproduct");
         console.log(data);
@@ -266,20 +265,20 @@ const AddProducts = () => {
         const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/addproduct", data ,{headers}).then(() => {
+         axios.post(`${Config.baseURL}/v1/addproduct`, fd ,{headers}).then(() => {
            console.log("sent");
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
-        axios.get("http://localhost:5000/getproductid",{ params: { productName: data.productName, productPriority: data.productPriority } } ).then((response) => {
+        axios.get(`${Config.baseURL}/v1/getproductid`,{ params: { productName: data.productName, productPriority: data.productPriority } } ).then((response) => {
             console.log(response.data);
             getProd(response.data.product_id);
           }).catch(() => {
              console.log("Something went wrong. Plase try again later");
          });
-       console.log(final_data);
-        
+       
     };
+
     function getProd(data) {
         console.log(data);
         history.push({
@@ -287,19 +286,18 @@ const AddProducts = () => {
             state:{"formData":formData, "prodId": data, "primaryPicture":primaryPicture, "secondryPicture":secondryPicture, "subscriptionType": subscribe  }
         })
     }
-    const classes = useStyles();
-    
 
-    function onSelectOption(event,data) {
-        
-    
+    const classes = useStyles();
+   
+
+    function onSelectOption(event, data) {
         if (event != null || event != undefined) {
             for (let i = 0; i < event.length; i++) {
                 setOptionSelectData({
                     ...optionSelectData,
-                    [event[i].name]: event[i].value,
+                    [event[i].label]: event[i].value,
                 });
-                if (event[i].value == 0 && event[i].State == 0) {
+                if (event[i].value === 0 && event[i].State === 0) {
                     history.push({
                         pathname: '/products/category',
                         // search: '?query=abc',                                                                                                                                           
@@ -308,7 +306,6 @@ const AddProducts = () => {
                             id: 0
                         }
                     })
-                    console.log(event);
                     break
                 } else if (event[i].value == 1 && event[i].State == 1) {
                     history.push({
@@ -318,9 +315,8 @@ const AddProducts = () => {
                             id: 1
                         }
                     })
-                    console.log(event);
                     break
-                } else if (event[i].value == 2 && event[i].State == 2) {
+                } else if (event[i].value === 2 && event[i].State === 2) {
                     history.push({
                         pathname: '/products/brand',
                         state: {
@@ -328,7 +324,6 @@ const AddProducts = () => {
                             id: 2
                         }
                     })
-                    
                     break
                 }
                 else {
@@ -370,45 +365,20 @@ const AddProducts = () => {
                 }
             }
         }
-        console.log(formData);
     }
-
-    /*function onLoadSKUAddition() {
-        const data = {formData};
-        console.log(data);
-        const headers = {
-            "Access-Control-Allow-Origin": "*",
-          }
-         axios.post("http://localhost:5000/addproduct", data ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
-            console.log("Something went wrong. Plase try again later");
-        });
-
-        history.push({
-            pathname: '/products/skuaddition',
-            state: {data: formData}
-        });
-    }*/
 
     const handleSubscriptionChange = (event) => {
         setSubscribe(event.target.value);
-      };
+    };
 
     const onDropPrimary = (primaryPictures) => {
-        console.log(primaryPictures)
-        setPrimaryPicture({
-            ...primaryPicture,
-            primaryPictures
-        });
+        console.log(primaryPictures[0])
+        setPrimaryPicture(primaryPictures[0]);
     }
-    
     const onDropSecondry = (secondryPictures) => {
         console.log(secondryPictures)
-        setSecondryPicture({
-            ...secondryPicture,
-            secondryPictures
-        });
+        setSecondryPicture(secondryPictures[0]);
+        console.log(secondryPicture);
     }
 
     return (
@@ -426,6 +396,7 @@ const AddProducts = () => {
                 <ValidatorForm
                     onSubmit={handleSubmit}
                     onError={errors => null} >
+
                     <Grid container spacing={6}>
                         <Grid item lg={6} md={6} sm={12} xs={12}>
                             <div className="row">
@@ -509,7 +480,7 @@ const AddProducts = () => {
                                         fileContainerStyle={{
                                             padding: "0",
                                             // border: "1px solid grey",
-                                            backgroundColor:"transparent",    
+                                            backgroundColor: "transparent",
                                         }}
                                         withIcon={false}
                                         withPreview={true}
@@ -532,7 +503,7 @@ const AddProducts = () => {
                                         fileContainerStyle={{
                                             padding: "0",
                                             // border: "1px solid grey",
-                                            backgroundColor:"transparent",
+                                            backgroundColor: "transparent",
                                         }}
                                         withIcon={false}
                                         withPreview={true}
@@ -553,14 +524,13 @@ const AddProducts = () => {
                                     <div className="row">
                                         <label className="col-sm-2">Description</label>
                                         <div className="col-sm-10">
-                                            <Editor
+                                        <Editor
                                                 editorState={editorState}
                                                 wrapperStyle={{ width: "100%", border: "1px solid brown", borderRadius: "5px" }}
                                                 editorStyle={{ minHeight: "100px" }}
                                                 toolbarStyle={{ border: "1px solid brown" }}
                                                 onEditorStateChange={onEditorStateChange}
                                                 name="productDescription"
-                                                
                                             />
                                         </div>
                                     </div>
@@ -571,10 +541,10 @@ const AddProducts = () => {
 
 
                         <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <FormControl  component="fieldset" style={{width:"80%"}}>
+                            <FormControl component="fieldset" style={{ width: "80%" }}>
                                 <div className="row">
                                     <div className="col-sm-4 col-md-3 col-12">
-                                        <FormLabel component="legend" style={{paddingTop:"15px"}}>
+                                        <FormLabel component="legend" style={{ paddingTop: "15px" }}>
                                             Subscription Type
                                         </FormLabel>
                                     </div>
@@ -594,7 +564,7 @@ const AddProducts = () => {
                                     <div className="row">
                                         <label className="col-sm-4 col-md-3 col-12">Mapping</label>
                                         <Select className="col-sm-6 col-md-3 col-12" options={mappingBuildingList()} onChange={(e) => onSelectOption(e, "mapping")} components={animatedComponents}
-                                         name="mappingBuilding" />
+                                            name="mappingBuilding" />
                                     </div>
                                 </div>
                                 <br />
@@ -609,10 +579,9 @@ const AddProducts = () => {
                             </div>
                         </Grid>
                     </Grid>
-
-                    <div className={classes.button} style={{marginTop:"50px"}}>
+                    <div className={classes.button} style={{ marginTop: "50px" }}>
                         <Button type="submit" variant="contained" color="primary">
-                            Next
+                            Add Product
                         </Button>
                     </div>
                 </ValidatorForm>
