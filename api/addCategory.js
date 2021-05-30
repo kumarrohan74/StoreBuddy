@@ -1,17 +1,24 @@
 //header files
 const mongoose = require('mongoose');
+var fs = require('fs');
+var path = require('path');
+require('dotenv/config');
 mongoose.set('useFindAndModify', false);
+
+
+
 //product schema
 
 const categorySchema = new mongoose.Schema({
     category_id: {type:Number,default: 0},
     category_name: String,
-    category_image: String,
+    category_image: {},
     category_description : String,
     status: String,
     category_priority: Number,
     partner_id : Number,
     isDelete: Boolean,
+    
     created_at: {type: Date, default: Date.now },
     updated_at: {type: Date}
 });
@@ -29,13 +36,13 @@ query.count(function (err, count) {
         }
 });
 
-async function createCategory(data)
+async function createCategory(data,categoryImage)
 {
     categoryLength = categoryLength + 1;
     const category = new Category({
         category_id: categoryLength,
         category_name: data.addcategoryName,
-        category_image: data.addcategoryImageURL,
+        category_image: categoryImage,
         category_description : data.addcategoryDescription,
         status: 1,
         partner_id : 3,
