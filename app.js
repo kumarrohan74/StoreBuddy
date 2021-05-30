@@ -2,7 +2,9 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
+
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 const path = require('path');
 const addProduct = require('./api/addProduct');
 const addCategory = require('./api/addCategory');
@@ -22,7 +24,7 @@ var cors = require('cors');
 
 
 //connection to database
-var connection = mongoose.connect('mongodb://localhost/StoreBuddy')
+var connection = mongoose.connect('mongodb+srv://kumar_rohan:vEd7lC6yvPSq6WIr@storebuddycluster.zgcmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
     .then(() => console.log('Connected'))
     .catch(err => console.error('could not connect'));
 
@@ -35,12 +37,21 @@ const port = process.env.PORT || 5000;
 app.listen(port,console.log(`server started on ${port}`));
 
 //middleware body parser
-app.use(bodyParser.json());
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb'}));
+
 
 //static folder
 app.use(express.static(path.join(__dirname,'public')));
+app.use(fileUpload());
+var multer = require('multer');
+ 
+var Storage = multer.diskStorage({
+    destination: "./public/uploads/"
+});
 
 
+var upload = multer({ storage: Storage }).single('categoryImage');
 /*  ---------------------------------------------------Product------------------------------------------*/
 
 //Add Product API
@@ -93,7 +104,12 @@ app.post('/addcategory',(req,res) => {
    console.log(req.body);
     if(res.statusCode === 200)
             {
-                addCategory.createCategory(req.body.addCategoryform);
+                console.log("req file");
+                console.log(req.body);
+                console.log(req.files);
+                var dp = req.files.categoryImage;
+                dp.mv('public/uploads/'+dp.name);
+                addCategory.createCategory(req.body,dp.name);
                 res.redirect('success.html');
             }
 });
