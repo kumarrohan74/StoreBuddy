@@ -89,6 +89,7 @@ const PrdoductCategory = () => {
     const history = useHistory();
     const [isLoading, setIsLoading] = React.useState(false);
     const [categoryData, setCategoryData] = React.useState([]);
+
     useEffect(() => {
         addingCategory = location.state;
         if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
@@ -106,7 +107,7 @@ const PrdoductCategory = () => {
         };
        
         sendRequest();
-    })
+    },[Location])
 
     const classes = useStyles();
     const [open, setOpen] = React.useState(false);
@@ -319,11 +320,16 @@ const PrdoductCategory = () => {
             setOpen(true)
             setAlertDailog(true);
         } else {
-            const data = {addCategoryform};
+            const data = addCategoryform;
+            var fd = new FormData();
+            fd.append("addcategoryName",addCategoryform.addcategoryName);
+            fd.append("addcategoryDescription", addCategoryform.addcategoryDescription);
+            fd.append("addcategoryPriority", addCategoryform.addcategoryPriority);
+            fd.append("categoryImage", addCategoryform.categoryImage);
             const headers = {
             "Access-Control-Allow-Origin": "*",
           }
-         axios.post("http://localhost:5000/addcategory", data ,{headers}).then(() => {
+         axios.post("http://localhost:5000/addcategory", fd ,{headers}).then(() => {
            console.log("sent");
          }).catch(() => {
             console.log("Something went wrong. Plase try again later");
@@ -346,7 +352,7 @@ const PrdoductCategory = () => {
             title: 'Name', field: 'category_name',
         },
         {
-            title: 'Image', field: 'category_image',
+            title: 'Image', field: 'category_image', render : rowData => <img src='http://localhost:5000/uploads/706c6aa297207e719f0c39cacbc61d09.png' style={{ width: 40, borderRadius: '50%' }} />
         },
         {
             title: 'Description', field: 'category_description',
@@ -381,8 +387,9 @@ const PrdoductCategory = () => {
         setOpen(true);
     }
 
-    function onloadImageUpload(a) {
-       console.log(a)
+    function onloadImageUpload(event) {
+       console.log(event.target.files[0]);
+       setAddCategoryform({...addCategoryform, categoryImage: event.target.files[0]});
     }
 
     return (
@@ -390,7 +397,7 @@ const PrdoductCategory = () => {
             <div className="mb-sm-30">
                 <Breadcrumb
                     routeSegments={[
-                        { name: "Category", path: "/produscts" },
+                        { name: "Category", path: "/products" },
                         { name: "Inventory" }
                     ]}
                 />
@@ -459,7 +466,7 @@ const PrdoductCategory = () => {
                                             <div>
                                                 <label> Click  <sup>*</sup></label>
                                                 <Paper component="form" className={classes.root}>
-                                                    <ImageUpload onloadImageUpload={onloadImageUpload} />
+                                                    <input type="file" onChange={onloadImageUpload} name="categoryImage" />
                                                 </Paper>
                                             </div>
                                         )
