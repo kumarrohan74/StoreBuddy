@@ -8,6 +8,11 @@ const addSubCategory = require('./api/v1/addSubCategory');
 const addBrand = require('./api/v1/addBrand');
 const addProduct = require('./api/v1/addProduct');
 const addSKU = require('./api/v1/addSKU');
+const addCity = require('./api/v1/addCity');
+const addWarehouse = require('./api/v1/addWarehouse');
+const addHub = require('./api/v1/addHub');
+const addStore = require('./api/v1/addStore');
+const addLocality = require('./api/v1/addLocality');
 /*const addProduct = require('./api/addProduct');
 const addCategory = require('./api/v1/addCategory');
 const addSubCategory = require('./api/addSubCategory');
@@ -36,6 +41,11 @@ const router = express.Router();
 app.use(cors());
 //assigning port no.
 const port = process.env.PORT || 5000;
+
+/*if(process.env.NODE_ENV === 'production') {
+    app.use(express.static('/stores_buddy_epanel/build'))
+}*/
+
 app.listen(port,console.log(`server started on ${port}`));
 
 
@@ -291,6 +301,203 @@ router.get('/v1/getsku', (req,res) => {
     addSKU.getSKU(num).then(result => res.json(result)).catch(err => console.log("error"));
 })
 
+
+/*  ---------------------------------------------------City------------------------------------------*/
+
+router.post('/v1/addcity',(req,res) => {
+    console.log("city");
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addCity.createCity(req.body);
+                res.redirect('success.html');
+            }
+});
+
+router.post('/v1/editcity', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        addCity.editCity(req.body);
+    }
+
+});
+
+router.post('/v1/deletecity', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        addCity.deleteCity(req.body);
+    }
+
+})
+
+router.get('/v1/getcity', (req,res) => {
+    addCity.getCity().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+/*  ---------------------------------------------------Warehouse------------------------------------------*/
+
+router.post('/v1/addwarehouse',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addWarehouse.createWarehouse(req.body.data);
+                res.redirect('success.html');
+            }
+    console.log(req.body);
+});
+
+router.get('/v1/getwarehouse', (req,res) => {
+    addWarehouse.getWarehouse().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+router.get('/v1/getwarehousebycity', (req,res) => {
+    console.log(req.query);
+    addWarehouse.getWarehouseByCity(req.query.city).then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+router.post('/v1/editwarehouse', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        console.log("body");
+        console.log(req.body);
+        addWarehouse.editWarehouse(req.body);
+    }
+
+});
+
+router.post('/v1/deletewarehouse', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        console.log(req.body);
+        addWarehouse.deleteWarehouse(req.body);
+    }
+
+})
+
+
+/*  ---------------------------------------------------Hub------------------------------------------*/
+
+app.post('/v1/addhub',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addHub.createHub(req.body);
+            }
+});
+
+router.post('/v1/edithub', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        console.log("body");
+        console.log(req.body);
+        addHub.editHub(req.body);
+    }
+
+});
+
+router.get('/v1/gethub', (req,res) => {
+    addHub.getHub().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+router.post('/v1/deletehub', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        console.log(req.body);
+        addHub.deleteHub(req.body);
+    }
+
+})
+
+app.get('/v1/gethubbywarehousecity', (req,res) => {
+    if(res.statusCode === 200)
+            {
+                addHub.getHubByWarehouseCity(req.query.warehouse, req.query.city).then(result => res.json(result)).catch(err => console.log("error"));
+            }
+})
+
+
+/*  ---------------------------------------------------Store------------------------------------------*/
+
+app.post('/v1/addstore',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addStore.createStore(req.body);
+            }
+    console.log(req.body);
+});
+
+router.post('/v1/editstore', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        console.log("body");
+        console.log(req.body);
+        addStore.editStore(req.body);
+    }
+
+});
+
+app.get('/v1/getstorebywarehousecityhub', (req,res) => {
+    if(res.statusCode === 200)
+     {
+         console.log(req.query);
+          addStore.getStoreByWarehouseCityHub(req.query.warehouse, req.query.city, req.query.hub).then(result => res.json(result)).catch(err => console.log("error"));
+     }
+})
+
+router.get('/v1/getstore', (req,res) => {
+    addStore.getStore().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
+router.post('/v1/deletestore', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        console.log(req.body);
+        addStore.deleteStore(req.body);
+    }
+
+})
+
+
+/*  ---------------------------------------------------Locality------------------------------------------*/
+
+app.post('/v1/addlocality',(req,res) => {
+    if(res.statusCode === 200)
+            {
+                console.log(req.body);
+                addLocality.createLocality(req.body);
+                res.redirect('success.html');
+            }
+});
+
+router.post('/v1/editlocality', (req,res) => {
+    if(res.statusCode === 200)
+    {
+        console.log("body");
+        console.log(req.body);
+        addLocality.editLocality(req.body);
+    }
+
+});
+
+router.post('/v1/deletelocality', (req,res) => {
+    console.log(req.body);
+    if(res.statusCode === 200)
+    {
+        console.log(req.body);
+        addLocality.deleteLocality(req.body);
+    }
+
+})
+
+router.get('/v1/getlocality', (req,res) => {
+    addLocality.getLocality().then(result => res.json(result)).catch(err => console.log("error"));
+})
+
 /*  ---------------------------------------------------Customer------------------------------------------*/
 
 /*app.post('/addcustomerpage',(req,res) => {
@@ -308,93 +515,17 @@ app.post('/addcustomer',(req,res) => {
 });
 
 
-/*  ---------------------------------------------------Warehouse------------------------------------------*/
-
-/*app.post('/addwarehousepage',(req,res) => {
-    res.redirect('addwarehouse.html');
-});
-
-app.post('/addwarehouse',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                addWarehouse.createWarehouse(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
 
 
-/*  ---------------------------------------------------Hub------------------------------------------*/
 
 
-/*app.post('/addhubpage',(req,res) => {
-    res.redirect('addhub.html');
-});
-
-app.post('/addhub',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                addHub.createHub(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
 
 
-/*  ---------------------------------------------------Store------------------------------------------*/
 
 
-/*app.post('/addstorepage',(req,res) => {
-    res.redirect('addstore.html');
-});
-
-app.post('/addstore',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                addStore.createStore(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
 
 
-/*  ---------------------------------------------------City------------------------------------------*/
 
-
-/*app.post('/addcitypage',(req,res) => {
-    res.redirect('addcity.html');
-});
-
-app.post('/addcity',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                addCity.createCity(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
-
-
-/*  ---------------------------------------------------Locality------------------------------------------*/
-
-
-/*app.post('/addlocalitypage',(req,res) => {
-    res.redirect('addlocality.html');
-});
-
-app.post('/addlocality',(req,res) => {
-    if(res.statusCode === 200)
-            {
-                addLocality.createLocality(req.body);
-                res.redirect('success.html');
-            }
-    console.log(req.body);
-   
-});
 
 
 /*  ---------------------------------------------------Address------------------------------------------*/
