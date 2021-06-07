@@ -56,7 +56,7 @@ const animatedComponents = makeAnimated();
 let addwarehouse = {}
 
 const WarehouseList = () => {
-
+    const [isCityChanged, setIsCityChanged] = React.useState(false);
     const classes = useStyles();
     const history = useHistory();
     const location = useLocation();
@@ -107,6 +107,11 @@ const WarehouseList = () => {
         addwarehouse = location.state;
         if ((location.state != null || location.state != undefined) && (addwarehouse != null || addwarehouse != undefined)) {
             setOpen(true);
+            setAddformData({
+                name: location.state.filledData.name,
+                description: location.state.filledData.description,
+            })
+            setSelectedValue(location.state.status);
         }
         const sendRequest = async () => {
             const response_city = await fetch(`${Config.baseURL}/v1/getcity`);
@@ -164,7 +169,8 @@ const WarehouseList = () => {
             name: data.warehouse_name,
             description: data.description,
             status: data.status,
-            city: data.city
+            cityName: data.city.cityName,
+            cityId: data.city.cityId
         })
         setSelectedValue(data.status.toString())
         onloadcityDetails(data);
@@ -173,7 +179,7 @@ const WarehouseList = () => {
 
 
     function onLoadEditSubmit() {
-        if (editformData.name === "" || citiesValue === null || citiesValue === undefined) {
+        if (editformData.name === "" || citiesValue === null || citiesValue === undefined || selectedValue === undefined) {
             setEditDailogOpen(true);
             setAlertDailog(true);
         } else {
@@ -182,11 +188,15 @@ const WarehouseList = () => {
                 status: selectedValue,
                 selectedCities: citiesValue
             }
-            console.log(editedData);
             const data = editedData.addformData;
-            data['city'] = editedData.selectedCities.label;
+            if(isCityChanged)
+            {
+                data['city'] = {cityName: editedData.selectedCities.label, cityId: editedData.selectedCities.id};
+            }
+            else {
+                data['city'] = {cityName: editformData.cityName, cityId: editformData.cityId}
+            }
             data['status'] = editedData.status;
-            console.log(data);
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               } 
@@ -195,6 +205,7 @@ const WarehouseList = () => {
              }).catch(() => {
                 console.log("Something went wrong. Plase try again later");
             });
+           setIsCityChanged(false);
             setEditformData({
                 id: '',
                 name: '',
@@ -213,8 +224,7 @@ const WarehouseList = () => {
     }
 
     function handleFormSubmit() {
-        console.log(addformData);
-        if (addformData.name === "" || citiesValue === null || citiesValue === undefined) {
+        if (addformData.name === "" || citiesValue === null || citiesValue === undefined || selectedValue === undefined) {
             setOpen(true)
             setAlertDailog(true);
         } else {
@@ -225,15 +235,12 @@ const WarehouseList = () => {
                 status: selectedValue,
                 selectedCities: citiesValue
             }
-            console.log(addedData);
             var data = addformData;
-            console.log(data);
-            data['city'] = addedData.selectedCities.label;
+            data['city'] = {cityName :addedData.selectedCities.label, cityId:  addedData.selectedCities.id};
             data['status'] = addedData.status;
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               } 
-             console.log(data);
              axios.post(`${Config.baseURL}/v1/addwarehouse`, {data} ,{headers}).then(() => {
                console.log("sent");
              }).catch(() => {
@@ -250,7 +257,6 @@ const WarehouseList = () => {
     }
 
     const onloadSelectCities = (value) => {
-        console.log(value);
         if (value !== null || value !== undefined) {
             
             if (value.id === 0 && value.state === 0) {
@@ -259,10 +265,18 @@ const WarehouseList = () => {
                     state: {
                         name: 'addcity',
                         id: 0,
-                        page: 'warehouse'
+                        page: 'warehouse',
+                        filledData: addformData, 
+                        status: selectedValue
                     }
                 })
             }
+        }
+        if(value.label !== undefined){
+            setIsCityChanged(true);  
+        }
+        else {
+            setIsCityChanged(false);
         }
         setCitiesValue(value);
     };
@@ -278,16 +292,9 @@ const WarehouseList = () => {
         );
         onloadSelectCities(data);
     }
-
-    console.log(cityData);
-   
-
     const addNewCityButton = [
         { value: "addcity", city_name: "Add City  + ", city_id: 0, state: 0 }
     ];
-
-    console.log(addNewCityButton);
-    console.log(cityData);
 
     function cities() {
         return (isLoadingCity && addNewCityButton.concat(cityData).map(data => ({ label: data.city_name, id: data.city_id, state: data.state })))
@@ -302,7 +309,7 @@ const WarehouseList = () => {
             title: 'Warehouse Name', field: 'warehouse_name',
         },
         {
-            title: 'City Name', field: 'city',
+            title: 'City Name', field: 'city.cityName',
         },
         {
             title: 'Description', field: 'description',
@@ -507,7 +514,7 @@ const WarehouseList = () => {
                                 <label>Select City <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.city, value: editformData.city}}
+                                    defaultValue={{label : editformData.cityName, value: editformData.cityId}}
                                     onChange={onloadSelectCities}
                                     options={cities()}
                                 />

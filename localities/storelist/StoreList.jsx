@@ -111,7 +111,6 @@ const StoreList = () => {
             setIsLoadingCity(true);
             const response_store= await fetch(`${Config.baseURL}/v1/getstore`);
             const responseData_store = await response_store.json();
-            console.log(responseData_store);
             setStoreData(responseData_store);
         };
         sendRequest();
@@ -134,23 +133,20 @@ const StoreList = () => {
         })
     }
 
-    async function getWarehouseByCity(city)
+    async function getWarehouseByCity(cityId)
     {
-        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {city :city}} ).then((response) => { 
-            console.log(response.data);
+        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {cityId :cityId}} ).then((response) => { 
             setWarehouseData(response.data);
             setIsLoadingWarehouse(true);
-           
           }).catch(() => {
              console.log("Something went wrong. Plase try again later");
          });
     }
 
-    function getHubByWarehouseCity(warehouse,city)
+    function getHubByWarehouseCity(warehouseId,cityId)
     {
         
-        axios.get(`${Config.baseURL}/v1/gethubbywarehousecity`,{ params: {warehouse: warehouse, city :city}}).then((response) => { 
-            console.log(response.data);
+        axios.get(`${Config.baseURL}/v1/gethubbywarehousecity`,{ params: {warehouseId: warehouseId, cityId :cityId}}).then((response) => { 
             setHubData(response.data);
             setIsLoadingHub(true);
           }).catch(() => {
@@ -171,9 +167,12 @@ const StoreList = () => {
             id: data.store_id,
             name: data.store_name,
             description: data.description,
-            city: data.city,
-            warehouse: data.warehouse,
-            hub: data.hub
+            cityName: data.city.cityName,
+            cityId: data.city.cityId,
+            warehouseName: data.warehouse.warehouseName,
+            warehouseId: data.warehouse.warehouseId,
+            hubName: data.hub.hubName,
+            hubId: data.hub.hubId
         })
         setSelectedValue(data.status.toString())
         onloadcityDetails(data);
@@ -195,35 +194,32 @@ const StoreList = () => {
                 selectedWarehouse: warehouseValue,
                 selectedhub: hubValue,
             }
-            console.log(editedData);
             var data = editedData.addformData;
-            console.log(data);
             if(editedData.selectedCities.label == null || editedData.selectedCities.label == undefined)
             {
-                data['city'] = editformData.city;
+                data['city'] = {cityName: editformData.cityName, cityId: editformData.cityId}
             }
             else {
-                data['city'] = editedData.selectedCities.label;
+                data['city'] = {cityName: editedData.selectedCities.label, cityId: editedData.selectedCities.id};
             }
             if(editedData.selectedWarehouse.label == null || editedData.selectedWarehouse.label == undefined)
             {
-                data['warehouse'] = editformData.warehouse;
+                data['warehouse'] = {warehouseName: editformData.warehouseName, warehouseId: editformData.warehouseId}
             }
             else {
-                data['warehouse'] = editedData.selectedWarehouse.label;
+                data['warehouse'] = {warehouseName: editedData.selectedWarehouse.label, warehouseId: editedData.selectedWarehouse.id};
             }
             if(editedData.selectedhub.label == null || editedData.selectedhub.label == undefined)
             {
-                data['hub'] = editformData.hub;
+                data['hub'] = {hubName: editformData.hubName, hubId: editformData.hubId}
             }
             else {
-                data['hub'] = editedData.selectedhub.label;
+                data['hub'] = {hubName: editedData.selectedhub.label, hubId: editedData.selectedhub.id};
             }
             data['status'] = editedData.status;
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               } 
-             console.log(data);
              axios.post(`${Config.baseURL}/v1/editstore`, data ,{headers}).then(() => {
                console.log("sent");
              }).catch(() => {
@@ -260,9 +256,9 @@ const StoreList = () => {
             
             var data = addformData;
             
-            data['city'] = addedData.selectedCities.label;
-            data['warehouse'] = addedData.selectedWarehouse.label;
-            data['hub'] = addedData.selectedhub.label;
+            data['city'] = {cityName :addedData.selectedCities.label, cityId:  addedData.selectedCities.id};
+            data['warehouse'] = {warehouseName :addedData.selectedWarehouse.label, warehouseId:  addedData.selectedWarehouse.id};
+            data['hub'] = {hubName :addedData.selectedhub.label, hubId:  addedData.selectedhub.id};
             data['status'] = addedData.status;
             const headers = {
                 "Access-Control-Allow-Origin": "*",
@@ -296,7 +292,7 @@ const StoreList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        getWarehouseByCity(value.label);
+        getWarehouseByCity(value.id);
         setCitiesValue(value);
     };
 
@@ -304,9 +300,9 @@ const StoreList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        if(value.label && citiesValue.label)
+        if(value.id && citiesValue.id)
         {
-            getHubByWarehouseCity(value.label, citiesValue.label);
+            getHubByWarehouseCity(value.id, citiesValue.id);
         }
        
         setWarehouseValue(value)
@@ -434,13 +430,13 @@ const StoreList = () => {
             title: 'Store Name', field: 'store_name',
         },
         {
-            title: 'Hub Name', field: 'hub',
+            title: 'Hub Name', field: 'hub.hubName',
         },
         {
-            title: 'Warehouse Name', field: 'warehouse',
+            title: 'Warehouse Name', field: 'warehouse.warehouseName',
         },
         {
-            title: 'City Name', field: 'city',
+            title: 'City Name', field: 'city.cityName',
         },
         {
             title: 'Description', field: 'description',
@@ -665,7 +661,7 @@ const StoreList = () => {
                                 <label>Select City <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.city, value: editformData.city}}
+                                    defaultValue={{label : editformData.cityName, value: editformData.cityId}}
                                     onChange={onloadSelectCities}
                                     options={cities()}
                                 />
@@ -674,7 +670,7 @@ const StoreList = () => {
                                 <label>Select Warehouse <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.warehouse, value: editformData.house}}
+                                    defaultValue={{label : editformData.warehouseName, value: editformData.warehouseId}}
                                     onChange={onloadSelectWarehouse}
                                     options={warehouseList()}
                                 />
@@ -684,7 +680,7 @@ const StoreList = () => {
                                 <label>Select Hub <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.hub, value: editformData.hub}}
+                                    defaultValue={{label : editformData.hubName, value: editformData.hubId}}
                                     onChange={onloadSelecthub}
                                     options={hubList()}
                                 />

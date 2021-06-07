@@ -56,6 +56,7 @@ const CityList = () => {
     const history = useHistory();
     const [isLoading, setIsLoading] = React.useState(false);
     const [cityData, setCityData] = React.useState([]);
+    
     useEffect(() => {
         addcity = location.state;
         if ((location.state != null || location.state != undefined) && (addcity != null || addcity != undefined)) {
@@ -64,12 +65,12 @@ const CityList = () => {
         const sendRequest = async () => {
             const response = await fetch(`${Config.baseURL}/v1/getcity`);
             const responseData = await response.json();
+            console.log(responseData);
             if(JSON.stringify(responseData) !=JSON.stringify(cityData))
             {
                 setCityData(responseData);
                 setIsLoading(true);
             }
-            console.log(responseData);
         };
         sendRequest();
 
@@ -91,7 +92,10 @@ const CityList = () => {
     function backtoSamePage() {
         if ((location.state != null || location.state != undefined) && (addcity != null || addcity != undefined)) {
             if(location.state.page === 'warehouse'){
-                history.push('/locality/warehouse');
+                history.push({
+                pathname:'/locality/warehouse',
+                state:location.state
+            });
             }else if(location.state.page === 'hub'){
                 history.push('/locality/hublist');
             }else if(location.state.page === 'store'){
@@ -166,10 +170,8 @@ const CityList = () => {
                 addformData: editformData,
                 status: selectedValue
             }
-            console.log(editcity);
             const data = editformData;
             data['status'] = editcity.status;
-            console.log(data);
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               }
@@ -190,7 +192,6 @@ const CityList = () => {
     }
 
     function handleFormSubmit() {
-        console.log(addformData);
         if (addformData.name === "") {
             setOpen(true)
             setAlertDailog(true);
@@ -211,7 +212,6 @@ const CityList = () => {
                 }).catch(() => {
                     console.log("Something went wrong. Plase try again later");
                 });
-            console.log(data);
             setSelectedValue(null);
             setAddformData({
                 name: "",
@@ -223,7 +223,6 @@ const CityList = () => {
 
     function handleClickDelete(event,data)
     {
-        console.log(event);
         event.isDelete = true;
         const formdata = {editformData};
         const headers = {

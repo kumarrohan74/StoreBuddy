@@ -99,9 +99,8 @@ const LocalityList = () => {
             const responseData_city = await response_city.json();
             setCityData(responseData_city);
             setIsLoadingCity(true);
-            const response_locality= await fetch(`${Config.baseURL}/v1/getlocality`);
+            const response_locality = await fetch(`${Config.baseURL}/v1/getlocality`);
             const responseData_locality = await response_locality.json();
-            console.log(responseData_locality);
             setLocalityData(responseData_locality);
         };
         sendRequest();
@@ -149,10 +148,14 @@ const LocalityList = () => {
             id: data.locality_id,
             name: data.locality_name,
             description: data.description,
-            city: data.city,
-            warehouse: data.warehouse,
-            hub: data.hub,
-            store:data.store
+            cityName: data.city.cityName,
+            cityId: data.city.cityId,
+            warehouseName: data.warehouse.warehouseName,
+            warehouseId: data.warehouse.warehouseId,
+            hubName: data.hub.hubName,
+            hubId: data.hub.hubId,
+            storeName:data.store.storeName,
+            storeId: data.store.storeId
         })
         setSelectedValue(data.status.toString())
         onloadcityDetails(data);
@@ -176,47 +179,49 @@ const LocalityList = () => {
                 selectedCities: citiesValue,
                 selectedWarehouse: warehouseValue,
                 selectedhub: hubValue,
-                selectedStore:storeValue
+                selectedStore: storeValue
             }
-            console.log(editedData);
             var data = editedData.addformData;
-            console.log(data);
             if(editedData.selectedCities.label == null || editedData.selectedCities.label == undefined)
             {
-                data['city'] = editformData.city;
+                data['city'] = {cityName: editformData.cityName, cityId: editformData.cityId}
+
             }
             else {
-                data['city'] = editedData.selectedCities.label;
+                data['city'] = {cityName: editedData.selectedCities.label, cityId: editedData.selectedCities.id};
             }
+
             if(editedData.selectedWarehouse.label == null || editedData.selectedWarehouse.label == undefined)
             {
-                data['warehouse'] = editformData.warehouse;
+                data['warehouse'] = {warehouseName: editformData.warehouseName, warehouseId: editformData.warehouseId}
+
             }
             else {
-                data['warehouse'] = editedData.selectedWarehouse.label;
+                data['warehouse'] = {warehouseName: editedData.selectedWarehouse.label, warehouseId: editedData.selectedWarehouse.id};
             }
             if(editedData.selectedhub.label == null || editedData.selectedhub.label == undefined)
             {
-                data['hub'] = editformData.hub;
+                data['hub'] = {hubName: editformData.hubName, hubId: editformData.hubId}
+
             }
             else {
-                data['hub'] = editedData.selectedhub.label;
+                data['hub'] = {hubName: editedData.selectedhub.label, hubId: editedData.selectedhub.id};
             }
             if(editedData.selectedStore.label == null || editedData.selectedStore.label == undefined)
             {
-                data['store'] = editformData.store;
+                data['store'] = {storeName: editformData.storeName, storeId: editformData.storeId}
+
             }
             else {
-                data['store'] = editedData.selectedStore.label;
+                data['store'] = {storeName: editedData.selectedStore.label, storeId: editedData.selectedStore.id};
             }
             data['status'] = editedData.status;
             const headers = {
                 "Access-Control-Allow-Origin": "*",
-              } 
-             console.log(data);
-             axios.post(`${Config.baseURL}/v1/editlocality`, data ,{headers}).then(() => {
-               console.log("sent");
-             }).catch(() => {
+            }
+            axios.post(`${Config.baseURL}/v1/editlocality`, data, { headers }).then((res) => {
+                console.log(res);
+            }).catch(() => {
                 console.log("Something went wrong. Plase try again later");
             });
             setEditformData({
@@ -246,26 +251,21 @@ const LocalityList = () => {
                 selectedCities: citiesValue,
                 selectedWarehouse: warehouseValue,
                 selectedhub: hubValue,
-                selectedStore:storeValue
+                selectedStore: storeValue
             }
-
-            console.log(addedData);
             var data = addformData;
-            
-            data['city'] = addedData.selectedCities.label;
-            data['warehouse'] = addedData.selectedWarehouse.label;
-            data['hub'] = addedData.selectedhub.label;
-            data['store'] = addedData.selectedStore.label;
+            data['city'] = {cityName :addedData.selectedCities.label, cityId:  addedData.selectedCities.id};
+            data['warehouse'] = {warehouseName :addedData.selectedWarehouse.label, warehouseId:  addedData.selectedWarehouse.id};
+            data['hub'] = {hubName :addedData.selectedhub.label, hubId:  addedData.selectedhub.id};
+            data['store'] = {storeName :addedData.selectedStore.label, storeId:  addedData.selectedStore.id};
             data['status'] = addedData.status;
-            const headers = {
-                "Access-Control-Allow-Origin": "*",
-              } 
-             
-             axios.post(`${Config.baseURL}/v1/addlocality`, data ,{headers}).then(() => {
-               console.log("sent");
-             }).catch(() => {
-                console.log("Something went wrong. Plase try again later");
-            });
+
+            history.push({
+                pathname: '/map',
+            })
+
+            localStorage.setItem("localityDetails", JSON.stringify(data));
+
             setDefaultFields()
             setAddformData({
                 name: "",
@@ -274,38 +274,34 @@ const LocalityList = () => {
         }
     }
 
-    async function getWarehouseByCity(city)
+    async function getWarehouseByCity(cityId)
     {
-        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {city :city}} ).then((response) => { 
-            console.log(response.data);
+        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {cityId :cityId}} ).then((response) => { 
             setWarehouseData(response.data);
             setIsLoadingWarehouse(true);
-           
           }).catch(() => {
              console.log("Something went wrong. Plase try again later");
          });
     }
 
-    function getHubByWarehouseCity(warehouse,city)
+    function getHubByWarehouseCity(warehouseId,cityId)
     {
         
-        axios.get(`${Config.baseURL}/v1/gethubbywarehousecity`,{ params: {warehouse: warehouse, city :city}}).then((response) => { 
-            console.log(response.data);
+        axios.get(`${Config.baseURL}/v1/gethubbywarehousecity`,{ params: {warehouseId: warehouseId, cityId :cityId}}).then((response) => { 
             setHubData(response.data);
             setIsLoadingHub(true);
-          }).catch(() => {
-             console.log("Something went wrong. Plase try again later");
-         });
+        }).catch(() => {
+            console.log("Something went wrong. Plase try again later");
+        });
     }
 
-    function getStoreByWarehouseCityHub(warehouse, city, hub) {
-        axios.get(`${Config.baseURL}/v1/getstorebywarehousecityhub`,{ params: {warehouse: warehouse, city :city, hub: hub}}).then((response) => { 
-            console.log(response.data);
+    function getStoreByWarehouseCityHub(warehouseId, cityId, hubId) {
+        axios.get(`${Config.baseURL}/v1/getstorebywarehousecityhub`,{ params: {warehouseId: warehouseId, cityId :cityId, hubId: hubId}}).then((response) => { 
             setStoreData(response.data);
             setIsLoadingStore(true);
-          }).catch(() => {
-             console.log("Something went wrong. Plase try again later");
-         });
+        }).catch(() => {
+            console.log("Something went wrong. Plase try again later");
+        });
     }
 
 
@@ -324,7 +320,7 @@ const LocalityList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        getWarehouseByCity(value.label);
+        getWarehouseByCity(value.id);
         setCitiesValue(value);
     };
 
@@ -332,9 +328,9 @@ const LocalityList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        if(value.label && citiesValue.label)
+        if(value.id && citiesValue.id)
         {
-            getHubByWarehouseCity(value.label, citiesValue.label);
+            getHubByWarehouseCity(value.id, citiesValue.id);
         }
         setWarehouseValue(value)
     }
@@ -343,11 +339,9 @@ const LocalityList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        console.log("hub value");
-        console.log(hubValue);
-        if(value.label && citiesValue.label && warehouseValue.label)
+        if(value.id && citiesValue.id && warehouseValue.id)
         {
-            getStoreByWarehouseCityHub(warehouseValue.label, citiesValue.label, value.label);
+            getStoreByWarehouseCityHub(warehouseValue.id, citiesValue.id, value.id);
         }
         setHubValue(value);
     }
@@ -495,16 +489,16 @@ const LocalityList = () => {
             title: 'Locality Name', field: 'locality_name',
         },
         {
-            title: 'Store Name', field: 'store',
+            title: 'Store Name', field: 'store.storeName',
         },
         {
-            title: 'Hub Name', field: 'hub',
+            title: 'Hub Name', field: 'hub.hubName',
         },
         {
-            title: 'Warehouse Name', field: 'warehouse',
+            title: 'Warehouse Name', field: 'warehouse.warehouseName',
         },
         {
-            title: 'City Name', field: 'city',
+            title: 'City Name', field: 'city.cityName',
         },
         {
             title: 'Description', field: 'description',
@@ -529,17 +523,16 @@ const LocalityList = () => {
         {
             icon: 'delete',
             tooltip: 'Delete Locality',
-            onClick: (event, rowData) =>  handleClickDelete(rowData, event)
+            onClick: (event, rowData) => handleClickDelete(rowData, event)
         },
     ]
 
-    function handleClickDelete(event,data)
-    {
+    function handleClickDelete(event, data) {
         event.isDelete = true;
         const headers = {
             "Access-Control-Allow-Origin": "*",
         }
-        axios.post(`${Config.baseURL}/v1/deletelocality`, event ,{headers}).then(() => {
+        axios.post(`${Config.baseURL}/v1/deletelocality`, event, { headers }).then(() => {
             console.log("sent");
         }).catch(() => {
             console.log("Something went wrong. Plase try again later");
@@ -659,7 +652,7 @@ const LocalityList = () => {
                                 Cancel
                             </Button>
                             <Button onClick={handleFormSubmit} variant="contained" color="primary" autoFocus>
-                                Submit
+                                Create Polygon
                             </Button>
                         </DialogActions>
                     </DialogContent>
@@ -736,7 +729,7 @@ const LocalityList = () => {
                                 <label>Select City <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.city, value: editformData.city}}
+                                    defaultValue={{label : editformData.cityName, value: editformData.cityId}}
                                     onChange={onloadSelectCities}
                                     options={cities()}
                                 />
@@ -745,7 +738,7 @@ const LocalityList = () => {
                                 <label>Select Warehouse <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.warehouse, value: editformData.house}}
+                                    defaultValue={{label : editformData.warehouseName, value: editformData.warehouseId}}
                                     onChange={onloadSelectWarehouse}
                                     options={warehouseList()}
                                 />
@@ -755,7 +748,7 @@ const LocalityList = () => {
                                 <label>Select Hub <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.hub, value: editformData.hub}}
+                                    defaultValue={{label : editformData.hubName, value: editformData.hubId}}
                                     onChange={onloadSelecthub}
                                     options={hubList()}
                                 />
@@ -764,7 +757,7 @@ const LocalityList = () => {
                                 <label>Select Store <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.store, value: editformData.store}}
+                                    defaultValue={{label : editformData.storeName, value: editformData.storeId}}
                                     onChange={onloadSelectStore}
                                     options={storeList()}
                                 />
@@ -820,7 +813,6 @@ const LocalityList = () => {
                 }}
             >
             </MaterialTable>
-
         </div >
     );
 }

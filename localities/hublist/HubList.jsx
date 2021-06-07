@@ -56,7 +56,7 @@ const animatedComponents = makeAnimated();
 let addHub = {}
 
 const HubList = () => {
-
+    const [isCityChanged, setIsCityChanged] = React.useState(false);
     const classes = useStyles();
     const history = useHistory();
     const location = useLocation();
@@ -122,10 +122,9 @@ const HubList = () => {
     }, [location])
 
 
-    async function getWarehouseByCity(city)
+    async function getWarehouseByCity(cityId)
     {
-        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {city :city}} ).then((response) => { 
-            console.log(response.data);
+        axios.get(`${Config.baseURL}/v1/getwarehousebycity`,{ params: {cityId :cityId}} ).then((response) => { 
             setWarehouseData(response.data);
             setIsLoadingWarehouse(true);
           }).catch(() => {
@@ -152,8 +151,11 @@ const HubList = () => {
             id: data.hub_id,
             name: data.hub_name,
             description: data.description,
-            city: data.city,
-            warehouse: data.warehouse
+            cityName: data.city.cityName,
+            cityId: data.city.cityId,
+            warehouseName: data.warehouse.warehouseName,
+            warehouseId: data.warehouse.warehouseId
+
         });
         setSelectedValue(data.status.toString());
         onloadcityDetails(data);
@@ -162,7 +164,6 @@ const HubList = () => {
     }
 
     function onLoadEditSubmit() {
-        console.log(warehouseValue);
         if (editformData.name === "" || citiesValue === null || citiesValue === undefined ||
             warehouseValue === null || warehouseValue === undefined) {
             setEditDailogOpen(true);
@@ -174,22 +175,20 @@ const HubList = () => {
                 selectedCities: citiesValue,
                 selectedWarehouse: warehouseValue,
             }
-            console.log(editedData);
             var data = editedData.addformData;
-            console.log(data);
             if(editedData.selectedCities.label == null || editedData.selectedCities.label == undefined)
             {
-                data['city'] = editformData.city;
+                data['city'] = {cityName: editformData.cityName, cityId: editformData.cityId}
             }
             else {
-                data['city'] = editedData.selectedCities.label;
+                data['city'] = {cityName: editedData.selectedCities.label, cityId: editedData.selectedCities.id};
             }
             if(editedData.selectedWarehouse.label == null || editedData.selectedWarehouse.label == undefined)
             {
-                data['warehouse'] = editformData.warehouse;
+                data['warehouse'] = {warehouseName: editformData.warehouseName, warehouseId: editformData.warehouseId}
             }
             else {
-                data['warehouse'] = editedData.selectedWarehouse.label;
+                data['warehouse'] = {warehouseName: editedData.selectedWarehouse.label, warehouseId: editedData.selectedWarehouse.id};
             }
             
             
@@ -198,7 +197,6 @@ const HubList = () => {
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               } 
-             console.log(data);
              axios.post(`${Config.baseURL}/v1/edithub`, data ,{headers}).then(() => {
                console.log("sent");
              }).catch(() => {
@@ -233,17 +231,13 @@ const HubList = () => {
                 selectedCities: citiesValue,
                 selectedWarehouse: warehouseValue,
             }
-
-            console.log(addedData);
             var data = addformData;
-            console.log(data);
-            data['city'] = addedData.selectedCities.label;
-            data['warehouse'] = addedData.selectedWarehouse.label;
+            data['city'] = {cityName :addedData.selectedCities.label, cityId:  addedData.selectedCities.id};
+            data['warehouse'] = {warehouseName :addedData.selectedWarehouse.label, warehouseId:  addedData.selectedWarehouse.id};
             data['status'] = addedData.status;
             const headers = {
                 "Access-Control-Allow-Origin": "*",
               } 
-             console.log(data);
              axios.post(`${Config.baseURL}/v1/addhub`, data ,{headers}).then(() => {
                console.log("sent");
              }).catch(() => {
@@ -277,8 +271,13 @@ const HubList = () => {
         if (value !== null) {
             redirectToRequiredPage(value);
         }
-        console.log(value.label);
-        getWarehouseByCity(value.label);
+        if(value.label !== undefined){
+            setIsCityChanged(true);  
+        }
+        else {
+            setIsCityChanged(false);
+        }
+        getWarehouseByCity(value.id);
         setCitiesValue(value);
         
     };
@@ -375,10 +374,10 @@ const HubList = () => {
             title: 'Hub Name', field: 'hub_name',
         },
         {
-            title: 'Warehouse Name', field: 'warehouse',
+            title: 'Warehouse Name', field: 'warehouse.warehouseName',
         },
         {
-            title: 'City Name', field: 'city',
+            title: 'City Name', field: 'city.cityName',
         },
         {
             title: 'Description', field: 'description',
@@ -592,7 +591,7 @@ const HubList = () => {
                                 <label>Select City <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.city, value: editformData.city}}
+                                    defaultValue={{label : editformData.cityName, value: editformData.cityId}}
                                     onChange={onloadSelectCities}
                                     options={cities()}
                                 />
@@ -601,7 +600,7 @@ const HubList = () => {
                                 <label>Select Warehouse <sup>*</sup></label>
                                 <Select
                                     name="form-field-name"
-                                    defaultValue={{label : editformData.warehouse, value: editformData.warehouse}}
+                                    defaultValue={{label : editformData.warehouseName, value: editformData.warehouseId}}
                                     onChange={onloadSelectWarehouse}
                                     options={warehouseList()}
                                 />
