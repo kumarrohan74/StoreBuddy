@@ -40,21 +40,35 @@ const useStyles = makeStyles(theme => ({
 
 var allSKUList = new Array();
 var showDailog = false;
-
+let skuAdd = {};
 const ProductSKUAddition = (props) => {
+    
     const [openskuaddition, SetOpenskuaddition] = React.useState(true);
 
     const history = useHistory();
     const classes = useStyles();
     const location = useLocation();
-    
+    const [prodId, setProdId] = React.useState();
+    var product_id_ = history.location.state.productID;
     useEffect(() => {  
+        skuAdd = location.state;
+        if ((location.state != null || location.state != undefined) && (skuAdd != null || skuAdd != undefined)) {
+            setOpen(true);
+        }
         if (openskuaddition === true) {
-            onEnter(0)
+            //onEnter(0)
             SetOpenskuaddition(false);
         }
-    })
-
+        var prodName = history.location.state.productName;
+        var prodPriority = history.location.state.productPriority;
+       
+       
+    axios.get(`${Config.baseURL}/v1/getproductid`,{ params: { productName: prodName, productPriority: prodPriority } } ).then((response) => {
+        setProdId(response.data.product_id)
+      }).catch(() => {
+         console.log("Something went wrong. Plase try again later");
+     });
+}, [Location])
     const GreenRadio = withStyles({
         root: {
             color: green[400],
@@ -107,7 +121,7 @@ const ProductSKUAddition = (props) => {
         setShow(!show);
     };
 
-    const onEnter = event => {
+    const saveSKU = event => {
         const calls = callbackCalls.slice();
         calls.unshift("");
         setCallbackCalls(calls);
@@ -116,15 +130,14 @@ const ProductSKUAddition = (props) => {
             ...allskuValues,
             addSkuValues
         })
-
-        if (event !== 0) {
-            if (addSkuValues.packageSize === "" || addSkuValues.productMrp === "" ||
-                selectedValue.yes === "1" && addSkuValues.qtySkumf === "") {
-                setOpen(true);
-                showDailog = true;
-            } else {
-                const data = addSkuValues;
-                data["product_id"] = history.location.state.prodId;
+        const data = addSkuValues;
+                if(product_id_ && prodId === undefined)
+                {
+                    data["product_id"] = product_id_.name;
+                }
+                else {
+                    data["product_id"] = prodId;
+                }
                 const headers = {
                     "Access-Control-Allow-Origin": "*",
                   }
@@ -133,6 +146,13 @@ const ProductSKUAddition = (props) => {
                  }).catch(() => {
                     console.log("Something went wrong. Plase try again later");
                 });
+        if (event !== 0) {
+            if (addSkuValues.packageSize === "" || addSkuValues.productMrp === "" ||
+                selectedValue.yes === "1" && addSkuValues.qtySkumf === "") {
+                setOpen(true);
+                showDailog = true;
+            } else {
+                
                 allSKUList.push(addSkuValues);
                 setAddSkuValues({
                     packageSize: '',
@@ -160,7 +180,6 @@ const ProductSKUAddition = (props) => {
     }
 
     function onLoadSubmitSKU() {
-        console.log(location);
         console.log(allSKUList);
     }
 
@@ -292,7 +311,7 @@ const ProductSKUAddition = (props) => {
 
                 <div>
                     <div className="col-md-6 col-sm-6 animation-wrapper">
-                        <Slide onEnter={onEnter}>
+                        <Slide >
                             {children}
                         </Slide>
                     </div>
@@ -307,7 +326,7 @@ const ProductSKUAddition = (props) => {
                 <div className="row">
                     <div className="col-sm-6">
                         <Button variant="contained" color="primary"
-                            onClick={onEnter} >Save & Add New SKU </Button>
+                            onClick={saveSKU} >Save & Add New SKU </Button>
                     </div>
                 </div><hr></hr>
 

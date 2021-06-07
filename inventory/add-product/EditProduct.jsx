@@ -1,34 +1,39 @@
-
-
 import React from 'react';
 import makeAnimated from 'react-select/animated';
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Select from 'react-select';
-import { Breadcrumb } from "matx";
-import Config from '../../config';
+import { Breadcrumb, RichTextEditor } from "matx";
 import { ValidatorForm } from "react-material-ui-form-validator";
 import { useHistory, useLocation } from "react-router-dom";
 import { useEffect, useState, setState } from "react";
-import axios from 'axios';
-import ImageUploader from 'react-images-upload';
-import { Editor } from "react-draft-wysiwyg";
+import SKUEdit from '../sku-addition/SKUEdit';
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditorState } from 'draft-js';
-import SKUEdit from '../sku-addition/SKUEdit';
-import { ContentState, convertToRaw } from 'draft-js';
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import WarningIcon from '@material-ui/icons/Warning';
+import Config from '../../config';
+import axios from 'axios';
 
 import {
-    Card,
     Grid,
     Button,
     RadioGroup,
     FormControlLabel,
     Radio,
     FormLabel,
-    FormControl
+    FormControl,
+    useMediaQuery
 } from "@material-ui/core";
+import { ImageUpload } from 'app/views/uploadImage/ImageUpload';
 
 const animatedComponents = makeAnimated();
+
+let imageValue = [];
+let multiImageValue = [];
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -42,115 +47,189 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-const fieledsaliasStyle = {
-    width: '97%',
-    padding: '0px 0px 0px 0px',
-}
-
-const fieledsgstStyle = {
-    width: '97%',
-    padding: '0px 0px 0px 0px',
-}
-
-const fielednameStyle = {
-    width: '97%',
-    padding: '12px 0px 0px 0px',
-}
-
-const fieledsStyle = {
-    width: '97%',
-    padding: '10px 0px 0px 0px',
-}
-
-const dropdwonstyle = {
-    width: '100%',
-    padding: '10px 0px 0px 0px',
-}
-
-
-
-
-const mappingBuilding_wise = [
-    {
-        Name: 'Locality 1',
-        Id: 1,
-        // State: 1,
-    },
-    {
-        Name: 'Locality 2',
-        Id: 2,
-    },
-    {
-        Name: 'Locality 3',
-        Id: 3,
-    },
+const productCategory = [
+    { value: 'addcategory ', label: "Add Category  + ", id: 0, state: 0 },
+    { value: 'categoryone', label: "Category One", id: 1 },
+    { value: 'categorytwo ', label: "Category Two", id: 2 },
+    { value: 'categorythree', label: "Category Three", id: 3 }
 ]
 
-const mappingBuilding = [
-    {
-        Name: 'Hub',
-        Id: 1,
-        // State: 1,
-    },
-    {
-        Name: 'Locality',
-        Id: 2,
-    },
-    {
-        Name: 'Store',
-        Id: 3,
-    },
+const productSubcategory = [
+    { value: 'addsubcategory', label: "Add Subcategory  + ", id: 0, state: 1 },
+    { value: 'subcategorytwo', label: "Subcategory One", id: 1 },
+    { value: 'subcategorythree', label: "Subcategory Two", id: 2 },
+    { value: 'subcategoryfour', label: "Subcategory Three", id: 3 }
 ]
 
+const productBrand = [
+    { value: 'addbrand', label: "Add Brand  + ", id: 0, state: 2 },
+    { value: 'brandone', label: "Brand One", id: 1 },
+    { value: 'brandtwo', label: "Brand Two", id: 2 },
+    { value: 'brandthree', label: "Brand Three", id: 3 }
+]
 
-function mappingBuildingList() {
-    return (mappingBuilding.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
-}
-function mappingBuildingList_wise() {
-    return (mappingBuilding_wise.map(data => ({ label: data.Name, value: data.Id, State: data.State })))
-}
+const mappingList = [
+    { value: 'hub', label: "Hub", id: 1, state: 0 },
+    { value: 'locality', label: "Locality", id: 2, state: 1 },
+    { value: 'store', label: "Store", id: 3, state: 2 }
+]
 
-
-
+let mapppedList = [];
 let editingAll = {};
 const EditProduct = (props) => {
-    console.log(props);
 
-    const {product_name,category,sub_category,sku_size,status,stock_qty,stock_update} = props.location.state.name;
-
-    const [primaryPicture, setPrimaryPicture] = React.useState([]);
-    const [secondryPicture, setSecondryPicture] = React.useState([]);
-    const [editorState, setEditorState] = React.useState(EditorState.createEmpty());
-    const [subscribe, setSubscribe] = React.useState('Non-Subscribe');
+    const { product_id,product_name, product_alias, product_priority, cgst, igst, sgst, subscription_type, product_description, brand, category, sub_category, mappingTypeId, mappedTypeId,hub, store, locality, mappedBy } = props.location.state.name;
+  
     const [open, setOpen] = React.useState(false);
-    const location = useLocation();
-    const history = useHistory();
-    
-    const data = history.location.state.name;
-    const [formData, setformData] = React.useState({
-        cgst: data.cgst,
-        igst: data.igst,
-        sgst: data.sgst,
-        product_locality: data.locality,
-        product_alias: data.product_alias,
-        product_brand: data.brand,
-        product_id: data.product_id,
-        product_name: data.product_name,
-        product_priority: data.product_priority,
-        product_status: data.status,
-        product_category: data.category,
-        product_subcategory: data.sub_category,
-        subscription_type: data.subscription_type,
-        product_description: data.product_description,
-        isDelete : data.isDelete
-    })
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+    const [editorState, setEditorState] = React.useState(product_description);
     const [isLoadingCategory, setIsLoadingCategory] = React.useState(false);
     const [isLoadingSubCategory, setIsLoadingSubCategory] = React.useState(false);
     const [isLoadingBrand, setIsLoadingBrand] = React.useState(false);
+    const [isLoadingHub, setIsLoadingHub] = React.useState(false);
+    const [isLoadingStore, setIsLoadingStore] = React.useState(false);
+    const [isLoadingLocality, setIsLoadingLocality] = React.useState(false);
+    const [subscribe, setSubscribe] = React.useState(subscription_type);
     const [categoryData, setCategoryData] = React.useState([]);
     const [subCategoryData, setSubCategoryData] = React.useState([]);
+    const [hubData, setHubData] = React.useState([]);
+    const [storeData, setStoreData] = React.useState([]);
+    const [localityData, setLocalityData] = React.useState([]);
+    const [hubSelect,setHub] = React.useState(false);
+    const [storeSelect, setStore] = React.useState(false);
+    const [localitySelect, setLocality] = React.useState(false);
     const [brandData, setBrandData] = React.useState([]);
-    const [optionSelectData, setOptionSelectData] = React.useState({ })
+    const location = useLocation();
+   
+    var mappedName,mappedId;
+    if(store != undefined || store != null)
+    {
+        mappedName = store.storeName;
+        mappedId = store.storeId;
+    }
+    if(hub != undefined || hub != null)
+    {
+        mappedName = hub.hubName;
+        mappedId = hub.hubId;
+    }
+    if(locality != undefined || locality != null)
+    {
+       mappedName = locality.localityName;
+       mappedId = locality.localityId;
+    }
+    const [formData, setformData] = React.useState(
+        {
+            productId: product_id,
+            productName: product_name,
+            productAlias: product_alias,
+            productPriority: product_priority,
+            productCGST: cgst,
+            productSGST: sgst,
+            productIGST: igst,
+            subscriptionType: subscription_type,
+            categoryName: category.categoryName,
+            categoryId: category.categoryId,
+            subCategoryName: sub_category.subCategoryName,
+            subCategoryId: sub_category.subCategoryId,
+            brandName: brand.brandName,
+            brandId: brand.brandId,
+            mappedByName: mappedBy.name,
+            mappedById: mappedBy.id,
+            mappedName: mappedName,
+            mappedId: mappedId
+
+        }
+    );
+
+    useEffect(() => {
+        editingAll = location.state;
+        if ((location.state != null || location.state != undefined) && (editingAll != null || editingAll != undefined)) {
+            setOpen(true);
+        }
+        const sendRequest = async () => {
+            const response_category = await fetch(`${Config.baseURL}/v1/getcategory`);
+            const responseData_category = await response_category.json();
+    
+            const response_subcategory = await fetch(`${Config.baseURL}/v1/getsubcategory`);
+            const responseData_subcategory = await response_subcategory.json();
+    
+            const response_brand = await fetch(`${Config.baseURL}/v1/getbrand`);
+            const responseData_brand = await response_brand.json();
+
+            const response_hub = await fetch(`${Config.baseURL}/v1/gethubbywarehouse`);
+            const responseData_hub = await response_hub.json();
+    
+            const response_store = await fetch(`${Config.baseURL}/v1/getstorebywarehouse`);
+            const responseData_store = await response_store.json();
+    
+            const response_locality = await fetch(`${Config.baseURL}/v1/getlocalitybywarehouse`);
+            const responseData_locality = await response_locality.json();
+
+            if (JSON.stringify(responseData_category) != JSON.stringify(categoryData) || JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData) || JSON.stringify(responseData_brand) != JSON.stringify(brandData)) {
+                setCategoryData(responseData_category);
+                setIsLoadingCategory(true);
+                setSubCategoryData(responseData_subcategory);
+                setIsLoadingSubCategory(true);
+                setBrandData(responseData_brand);
+                setIsLoadingBrand(true);
+    
+            }
+            if (JSON.stringify(responseData_hub) != JSON.stringify(hubData) || JSON.stringify(responseData_store) != JSON.stringify(storeData) || JSON.stringify(responseData_locality) != JSON.stringify(localityData)) {
+                setHubData(responseData_hub);
+                setIsLoadingHub(true);
+                setStoreData(responseData_store);
+                setIsLoadingStore(true);
+                setLocalityData(responseData_locality);
+                setIsLoadingLocality(true);
+            }
+        };
+        sendRequest();
+    }, [Location]);
+
+    const addNewCatButton = [
+        {
+            category_name: "Add New",
+            category_id: 0,
+            State: 0,
+        }
+    ];
+
+    const addNewSubCatButton = [
+        {
+            subcategory_name: "Add New",
+            subcategory_id: 1,
+            State: 1,
+        }
+    ];
+
+    const addNewBrandButton = [
+        {
+            brand_name: "Add New",
+            brand_id: 2,
+            State: 2,
+        }
+    ];
+
+    function productCategorysList() {
+        return (isLoadingCategory && addNewCatButton.concat(categoryData).map(data => ({ label: data.category_name, value: data.category_id, State: data.State })))
+    }
+
+    function productSubcategoryList() {
+        return (isLoadingSubCategory && addNewSubCatButton.concat(subCategoryData).map(data => ({ label: data.subcategory_name, value: data.subcategory_id, State: data.State })))
+    }
+
+    function productBrandList() {
+        return (isLoadingBrand && addNewBrandButton.concat(brandData).map(data => ({ label: data.brand_name, value: data.brand_id, State: data.State })))
+    }
+
+    
+    const [categoryValue, setCategoryValue] = useState();
+    const [subcategoryValue, setSubcategoryValue] = useState();
+    const [brandValue, setBrandValue] = useState();
+    const [mappingValue, setMappingValue] = useState();
+    const [mappedValue, setMappedValue] = useState();
 
     function handleChange(event) {
         // event.persist();
@@ -160,127 +239,162 @@ const EditProduct = (props) => {
         });
     }
 
-    const onEditorStateChange = (editorState) => {
-        convertContentToHTML();
+    const handleClose = () => {
+        setOpen(false);
+    }
 
-        setEditorState(editorState);
+    const handleContentChange = contentHtml => {
+        setEditorState(contentHtml);
     };
-
-    const convertContentToHTML = () => {
-        let currentContentAsHTML = convertToRaw(editorState.getCurrentContent());
-        var stringParsed = currentContentAsHTML.blocks[0].text;
-        setformData({ ...formData, productDescription: stringParsed});
-      }
-
-      useEffect(() => {
-        editingAll = location.state;
-        if ((location.state != null || location.state != undefined) && (editingAll != null || editingAll != undefined)) {
-            setOpen(true);
-        }
-        const sendRequest = async () => {
-            const response_category = await fetch(`${Config.baseURL}/v1/getcategory`);
-            const responseData_category = await response_category.json();
-
-            const response_subcategory= await fetch(`${Config.baseURL}/v1/getsubcategory`);
-            const responseData_subcategory = await response_subcategory.json();
-
-            const response_brand= await fetch(`${Config.baseURL}/v1/getbrand`);
-            const responseData_brand = await response_brand.json();
-
-            
-
-            if(JSON.stringify(responseData_category) != JSON.stringify(categoryData) || JSON.stringify(responseData_subcategory) != JSON.stringify(subCategoryData) || JSON.stringify(responseData_brand) != JSON.stringify(brandData))
-            {
-                setCategoryData(responseData_category);
-                setIsLoadingCategory(true);
-                setSubCategoryData(responseData_subcategory);
-                setIsLoadingSubCategory(true);
-                setBrandData(responseData_brand);
-                setIsLoadingBrand(true);
-               
-            }
-        };
-        sendRequest();
-
-    },[Location]);
-
-    const addNewCatButton = [
-        {
-            category_name : "Add New",
-            Id: 0,
-            State: 0,
-        }
-    ];
-
-    const addNewSubCatButton = [
-        {
-            subcategory_name : "Add New",
-            Id: 1,
-            State: 1,
-        }
-    ];
-
-    const addNewBrandButton = [
-        {
-            brand_name : "Add New",
-            Id: 2,
-            State: 2,
-        }
-    ];
-
-    var productCategory,productSubCategory,productBrand ;
-    if(JSON.stringify(productCategory) != JSON.stringify(categoryData))
-    {
-        productCategory = categoryData;
-    }
-
-    if(JSON.stringify(productSubCategory) != JSON.stringify(subCategoryData))
-    {
-        productSubCategory = subCategoryData;
-    }
-
-    if(JSON.stringify(productBrand) != JSON.stringify(brandData))
-    {
-        productBrand = brandData;
-    }
-    
-    function productCategorysList() {
-        return (isLoadingCategory && addNewCatButton.concat(productCategory).map(data => ({ label: data.category_name, value: data.Id, State: data.State })))
-    }
-    
-    function productSubcategoryList() {
-        return (isLoadingSubCategory && addNewSubCatButton.concat(productSubCategory).map(data => ({ label: data.subcategory_name, value: data.Id, State: data.State })))
-    }
-    
-    function productBrandList() {
-        return (isLoadingBrand && addNewBrandButton.concat(productBrand).map(data => ({ label: data.brand_name, value: data.Id, State: data.State })))
-    }
 
     function handleSubmit() {
-        const data = {formData};
-        console.log(formData);
+        let addProductData = {
+            formDetails: formData,
+            category: categoryValue,
+            subcategory: subcategoryValue,
+            brand: brandValue,
+            mapping: mappingValue,
+            mapped: mappedValue,
+            description: editorState,
+            subscriptionType: subscribe,
+            primaryImage: imageValue,
+            secondaryImage: multiImageValue
+        }
+        
+        
+        var description  = addProductData.description.replace(/<\/?[^>]+(>|$)/g, "");
+        const data = addProductData.formDetails;
+        data["productDescription"] = description;
+        if(addProductData.brand !== undefined)
+        {
+            data["productBrand"] = {brandName: addProductData.brand[0].label, brandId: addProductData.brand[0].value};
+        }
+        else {
+            data["productBrand"] = {brandName: addProductData.formDetails.brandName, brandId: addProductData.formDetails.brandId};
+        }
+        if(addProductData.category !== undefined)
+        {
+            data["productCategory"] = { categoryName: addProductData.category[0].label, categoryId: addProductData.category[0].value};
+        }
+        else {
+            data["productCategory"] = {categoryName: addProductData.formDetails.categoryName, categoryId: addProductData.formDetails.categoryId};
+        }
+        if(addProductData.subcategory !== undefined)
+        {
+            data["productSubCategory"] = { subCategoryName: addProductData.subcategory[0].label, subCategoryId: addProductData.subcategory[0].value};
+        }
+        else {
+            data["productSubCategory"] = {subCategoryName: addProductData.formDetails.subCategoryName, subCategoryId: addProductData.formDetails.subCategoryId};
+        }
+        if(addProductData.mapped !== undefined)
+        {
+            data["mappedBy"] = {name: addProductData.mapping.label, id: addProductData.mapping.id, value:addProductData.mapping.value }
+        }
+        else {
+            data["mappedBy"] = {name: addProductData.formDetails.mappedByName, id: addProductData.formDetails.mappedById, value:addProductData.formDetails.mappedByName};
+        }
+        if(hubSelect)
+        {
+            data["hub"] = {hubName: addProductData.mapped.label, hubId: addProductData.mapped.value}
+        }
+        else if(storeSelect)
+        {
+            data["store"] = {storeName: addProductData.mapped.label, storeId: addProductData.mapped.value}
+
+        }
+        else if(localitySelect)
+        {
+            data["locality"] = {localityName: addProductData.mapped.label, localityId: addProductData.mapped.value}
+        }
+        
+        if (formData.productAlias === "" || formData.productName === "" || formData.productPriority === ""
+            || categoryValue === undefined || subcategoryValue === undefined || brandValue === undefined || imageValue === undefined
+            || mappingValue === undefined || mappedValue === undefined) {
+            setOpen(true);
+        }
+        console.log(data);
         const headers = {
             "Access-Control-Allow-Origin": "*",
-          }
-         axios.post(`${Config.baseURL}/v1/editproduct`, data ,{headers}).then(() => {
-           console.log("sent");
-         }).catch(() => {
+        }
+        axios.post(`${Config.baseURL}/v1/editproduct`, data, { headers }).then(() => {
+            console.log("sent");
+        }).catch(() => {
             console.log("Something went wrong. Plase try again later");
         });
+
+        // history.push({
+        //     pathname: '/products/skuaddition',
+        //     state: { "formData": formData, "optionSelectData": optionSelectData, "primaryPicture": primaryPicture, "secondryPicture": secondryPicture, "subscriptionType": subscribe }
+        // })
     };
 
-    const classes = useStyles();
-    
-    
+    function onloadImageUpload(imageOutput) {
+        imageValue = imageOutput
+    }
 
-    function onSelectOption(event) {
-        if (event != null || event != undefined) {
-            for (let i = 0; i < event.length; i++) {
-                setOptionSelectData({
-                    ...optionSelectData,
-                    [event[i].label]: event[i].value,
-                });
-                if (event[i].value === 0 && event[i].State === 0) {
+    function onloadMultiImageUpload(imageData) {
+        multiImageValue = imageData;
+    }
+
+    const classes = useStyles();
+    const history = useHistory();
+
+    const onloadSelectMapping = (value) => {
+        if (value.state === 0) {
+            setHub(true);
+            setStore(false);
+            setLocality(false);
+            mapppedList = hubData.map(data => ({ label: data.hub_name, value: data.hub_id, State: data.State }));
+            
+        } else if (value.state === 1) {
+            setHub(false);
+            setStore(false);
+            setLocality(true);
+            mapppedList = localityData.map(data => ({ label: data.locality_name, value: data.locality_id, State: data.State }));
+        } else if (value.state === 2) {
+            setHub(false);
+            setStore(true);
+            setLocality(false);
+            mapppedList = storeData.map(data => ({ label: data.store_name, value: data.store_id, State: data.State }));
+        }
+
+        setMappingValue(value);
+    }
+
+    const onloadSelectMappedValues = (value) => {
+        setMappedValue(value);
+    }
+
+    const onloadSelectCategory = (value) => {
+        if (value !== null) {
+            redirectToRequiredPage(value);
+        }
+        setCategoryValue(value);
+    };
+
+    const onloadSelectSubcategory = (value) => {
+        if (value !== null) {
+            redirectToRequiredPage(value);
+        }
+        setSubcategoryValue(value)
+    }
+
+    const onloadSelectBrand = (value) => {
+        if (value !== null) {
+            redirectToRequiredPage(value);
+        }
+        setBrandValue(value)
+    }
+
+    const handleSubscriptionChange = (event) => {
+        setSubscribe(event.target.value);
+    };
+
+    function redirectToRequiredPage(redirectData) {
+
+        for (let i = 0; i < redirectData.length; i++) {
+            if (redirectData[i].id === 0) {
+                if (redirectData[i].state === 0) {
                     history.push({
                         pathname: '/products/category',
                         // search: '?query=abc',                                                                                                                                           
@@ -289,8 +403,7 @@ const EditProduct = (props) => {
                             id: 0
                         }
                     })
-                    break
-                } else if (event[i].value == 1 && event[i].State == 1) {
+                } else if (redirectData[i].state === 1) {
                     history.push({
                         pathname: '/products/subcategory',
                         state: {
@@ -298,8 +411,7 @@ const EditProduct = (props) => {
                             id: 1
                         }
                     })
-                    break
-                } else if (event[i].value === 2 && event[i].State === 2) {
+                } else if (redirectData[i].state === 2) {
                     history.push({
                         pathname: '/products/brand',
                         state: {
@@ -307,241 +419,136 @@ const EditProduct = (props) => {
                             id: 2
                         }
                     })
-                    break
-                }
-                else {
-                    if(data === "category")
-                    {
-                        var categoryLabel = event[0].label;
-                        formData.product_category = history.location.state.name.category;
-                        setformData({ ...formData, product_category: categoryLabel});    
-                                  
-                    }
-                    else if(data === "subcategory")
-                    {
-                        var subcategoryLabel = event[0].label;
-                        formData.product_subcategory = history.location.state.name.sub_category;
-                        setformData({ ...formData, product_subcategory: subcategoryLabel});
-                    }
-                    else if(data === "brand")
-                    {
-                        var brandLabel = event[0].label;
-                        formData.product_brand = history.location.state.name.brand;
-                        setformData({ ...formData, product_brand: brandLabel});
-                    }
-                    
-                    else if(data === "locality")
-                    {
-                        console.log("coming in locality")
-                        var localityLabel = event[0].label;
-                        formData.productLocality = "";
-                        setformData({ ...formData, product_locality: localityLabel});
-                    }
-                    else if(data === "mapping")
-                    {
-                        console.log("coming in mapping")
-                        var mappingLabel = event[0].label;
-                        formData.productMapping = "";
-                        setformData({ ...formData, product_mapping: mappingLabel});
-                    }
-                    
                 }
             }
         }
     }
-    
-    const handleSubscriptionChange = (event) => {
-        setSubscribe(event.target.value);
-      };
-
-    const onDropPrimary = (primaryPictures) => {
-        console.log(primaryPictures)
-        setPrimaryPicture({
-            ...primaryPicture,
-            primaryPictures
-        });
-    }
-    const onDropSecondry = (secondryPictures) => {
-        console.log(secondryPictures)
-        setSecondryPicture({
-            ...secondryPicture,
-            secondryPictures
-        });
-    }
 
     return (
         <div className="m-sm-30">
-            {/* <div className="mb-sm-30">
+            <div className="mb-sm-30">
                 <Breadcrumb
                     routeSegments={[
                         { name: "Add Product", path: "/products" },
                         { name: "Inventory" }
                     ]}
                 />
-            </div> */}
+            </div>
 
-            <div>
+            <div style={{ border: '1px solid silver', padding: '10px' }}>
                 <ValidatorForm
                     onSubmit={handleSubmit}
                     onError={errors => null} >
 
                     <Grid container spacing={6}>
                         <Grid item lg={6} md={6} sm={12} xs={12}>
-                            <div className="row">
-                                <label className="col-sm-4">Product Name</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.product_name} onChange={handleChange} type="text" name="product_name" required={true} />
-                                </div>
+                            <label>Product Name <sup>*</sup></label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productName} onChange={handleChange} type="text" name="productName" />
                             </div>
 
-                            <div className="row">
-                                <label className="col-sm-4">Product Alias</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.product_alias} onChange={handleChange} type="text" name="product_alias" required={true} />
-                                </div>
+                            <label>Product Alias<sup>*</sup></label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productAlias} onChange={handleChange} type="text" name="productAlias" />
                             </div>
 
-                            <div className="row">
-                                <label className="col-sm-4">Product Priority</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.product_priority} onChange={handleChange} type="text" name="product_priority" required={true} />
-                                </div>
+                            <label >Product Priority<sup>*</sup></label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productPriority} onChange={handleChange} type="text" name="productPriority" />
                             </div>
-                        </Grid>
+
+                            <label>Select Category<sup>*</sup></label>
+                            <div>
+                                <Select
+                                    isMulti
+                                    name="form-field-name"
+                                    defaultValue={{label : formData.categoryName, value: formData.categoryId}}
+                                    onChange={onloadSelectCategory}
+                                    options={productCategorysList()}
+                                />
+                            </div><br></br>
+
+                            <label>Select Sub-category<sup>*</sup></label>
+                            <div>
+                                <Select
+                                    isMulti
+                                    name="form-field-name"
+                                    defaultValue={{label : formData.subCategoryName, value: formData.subCategoryId}}
+                                    onChange={onloadSelectSubcategory}
+                                    options={productSubcategoryList()}
+                                />
+                            </div>
+                        </Grid><hr></hr>
 
                         <Grid item lg={6} md={6} sm={12} xs={12}>
-
-                            <div className="row">
-                                <label className="col-sm-4">Tax CGST %</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.cgst} onChange={handleChange} type="text" name="cgst" required={true} />
-                                </div>
+                            <label>Tax CGST %</label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productCGST} onChange={handleChange} type="Number" name="productCGST" />
                             </div>
 
-                            <div className="row">
-                                <label className="col-sm-4">Tax SGST %</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.sgst} onChange={handleChange} type="text" name="sgst" required={true} />
-                                </div>
+                            <label>Tax SGST %</label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productSGST} onChange={handleChange} type="Number" name="productSGST" />
                             </div>
 
-                            <div className="row">
-                                <label className="col-sm-4">Tax IGST %</label>
-                                <div className="col-sm-8">
-                                    <input className="mb-16 w-100" defaultValue={formData.igst} onChange={handleChange} type="text" name="igst" required={true} />
-                                </div>
+                            <label>Tax IGST %</label>
+                            <div>
+                                <input className="mb-16 w-100 form-control" value={formData.productIGST} onChange={handleChange} type="Number" name="productIGST" />
                             </div>
-                        </Grid>
-
-                        <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <div className="row">
-                                <div className="col-sm-4">
-                                    <div className="row">
-                                        <label className="col-sm-3">Brand</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_brand, value: formData.product_brand}}  options={productBrandList()} onChange={onSelectOption} components={animatedComponents}
-                                            isMulti name="productBrand" />
-                                    </div>
-                                </div>
-                                <div className="col-sm-4">
-                                    <div className="row">
-                                        <label className="col-sm-3">Category</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_category, value: formData.product_category}} options={productCategorysList()} onChange={onSelectOption} components={animatedComponents}
-                                            isMulti name="productCategory" />
-                                    </div>
-                                </div>
-                                <div className="col-sm-4">
-                                    <div className="row">
-                                        <label className="col-sm-5">Sub-category</label>
-                                        <Select className="col-sm-7" defaultValue={{label : formData.product_subcategory, value: formData.product_subcategory}} options={productSubcategoryList()} onChange={onSelectOption}
-                                            isMulti name="productSubcategory" />
-                                    </div>
-                                </div>
+                            <label>Select Brand<sup>*</sup></label>
+                            <div>
+                                <Select
+                                    isMulti
+                                    name="form-field-name"
+                                    defaultValue={{label : formData.brandName, value: formData.brandId}}
+                                    onChange={onloadSelectBrand}
+                                    options={productBrandList()}
+                                />
                             </div>
 
                         </Grid>
 
                         <Grid item lg={6} md={6} sm={12} xs={12}>
-                            <div className="row">
-                                <label className="col-sm-4" style={{ lineHeight: "70px" }}>Primary Image</label>
-                                <div className="col-sm-8">
-                                    <ImageUploader
-                                        fileContainerStyle={{
-                                            padding: "0",
-                                            // border: "1px solid grey",
-                                            backgroundColor:"transparent",    
-                                        }}
-                                        withIcon={false}
-                                        withPreview={true}
-                                        withLabel={false}
-                                        singleImage={true}
-                                        buttonText='Upload image'
-                                        onChange={onDropPrimary}
-                                        imgExtension={['.jpg', '.gif', '.png', '.gif']}
-                                        maxFileSize={5242880}
-                                    />
-                                </div>
+                            <label style={{ lineHeight: "70px" }}>Primary Image<sup>*</sup></label>
+                            <div>
+                                <ImageUpload onloadImageUpload={onloadImageUpload} />
                             </div>
                         </Grid>
 
                         <Grid item lg={6} md={6} sm={12} xs={12}>
-                            <div className="row">
-                                <label className="col-sm-4" style={{ lineHeight: "70px" }}>Secondry Image</label>
-                                <div className="col-sm-8">
-                                    <ImageUploader
-                                        fileContainerStyle={{
-                                            padding: "0",
-                                            // border: "1px solid grey",
-                                            backgroundColor:"transparent",
-                                        }}
-                                        withIcon={false}
-                                        withPreview={true}
-                                        withLabel={false}
-                                        singleImage={false}
-                                        buttonText='Upload image'
-                                        onChange={onDropSecondry}
-                                        imgExtension={['.jpg', '.gif', '.png', '.gif']}
-                                        maxFileSize={5242880}
-                                    />
-                                </div>
+                            <label style={{ lineHeight: "70px" }}>Secondry Image</label>
+                            <div>
+                                <ImageUpload onloadMultiImageUpload={onloadMultiImageUpload} multi={true} />
                             </div>
                         </Grid>
 
                         <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <div className="row">
-                                        <label className="col-sm-2">Description</label>
-                                        <div className="col-sm-10">
-                                            <Editor
-                                                editorState={editorState}
-                                                wrapperStyle={{ width: "100%", border: "1px solid brown", borderRadius: "5px" }}
-                                                editorStyle={{ minHeight: "100px" }}
-                                                toolbarStyle={{ border: "1px solid brown" }}
-                                                onEditorStateChange={onEditorStateChange}
-                                                name="productDescription"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Grid>
-
-
-
-                        <Grid item lg={12} md={12} sm={12} xs={12}>
-                            <FormControl  component="fieldset" style={{width:"80%"}}>
+                            <div className="col-sm-12">
                                 <div className="row">
-                                    <div className="col-sm-4 col-md-3 col-12">
-                                        <FormLabel component="legend" style={{paddingTop:"15px"}}>
-                                            Subscription Type
-                                        </FormLabel>
+                                    <label className="col-sm-2">Description</label>
+                                    <div className="col-sm-10">
+                                    <RichTextEditor
+                                            content={editorState}
+                                            handleContentChange={handleContentChange}
+                                            placeholder="insert text here..."
+                                        />
                                     </div>
-                                    <div className="col-sm-8 col-md-9 col-12">
-                                        <RadioGroup row aria-label="subscrition" name="subscrition" value={formData.subscription_type} onChange={handleSubscriptionChange}>
-                                            <FormControlLabel className="col-sm-3" value="Subscribe" control={<Radio />} label="Subscribe" labelPlacement="start" />
-                                            <FormControlLabel className="col-sm-6" value="Non-Subscribe" control={<Radio />} label="Non-Subscribe" labelPlacement="start" />
-                                        </RadioGroup>
-                                    </div>
+                                </div>
+                            </div>
+                        </Grid>
+
+                        <Grid item lg={12} md={12} sm={12} xs={12}>
+                            <FormControl component="fieldset" style={{ width: "80%" }}>
+                                <div className="col-sm-4 col-md-3 col-12">
+                                    <FormLabel component="legend" style={{ paddingTop: "15px" }}>
+                                        Subscription Type<sup>*</sup>
+                                    </FormLabel>
+                                </div>
+                                <div className="col-sm-8 col-md-9 col-12">
+                                    <RadioGroup row aria-label="subscrition" name="subscrition" value={subscribe} onChange={handleSubscriptionChange}>
+                                        <FormControlLabel value='1' control={<Radio />} label="Subscribe" labelPlacement="start" />
+                                        <FormControlLabel className="col-sm-6" value='2' control={<Radio />} label="Non-Subscribe" labelPlacement="start" />
+                                    </RadioGroup>
                                 </div>
                             </FormControl>
                         </Grid>
@@ -551,8 +558,15 @@ const EditProduct = (props) => {
                                 <div className="col-sm-12">
                                     <div className="row">
                                         <label className="col-sm-4 col-md-3 col-12">Mapping</label>
-                                        <Select className="col-sm-6 col-md-3 col-12" options={mappingBuildingList()} onChange={onSelectOption} components={animatedComponents}
-                                         name="mappingBuilding" />
+                                        <div className="col-sm-6">
+                                            <Select
+                                                name="form-field-name"
+                                                defaultValue={{label : formData.mappedByName, value: formData.mappedById}}
+                                                onChange={onloadSelectMapping}
+                                                options={mappingList}
+                                            />
+                                        </div>
+
                                     </div>
                                 </div>
                                 <br />
@@ -560,24 +574,53 @@ const EditProduct = (props) => {
                                 <div className="col-sm-12">
                                     <div className="row">
                                         <label className="col-sm-4 col-md-3 col-12">All Locality/Hub/Store</label>
-                                        <Select className="col-sm-6 col-md-9 col-12" defaultValue={{label : formData.product_locality, value: formData.product_locality}} options={mappingBuildingList_wise()} onChange={onSelectOption} components={animatedComponents}
-                                            isMulti name="mappingBuilding_wise" />
+                                        <div className="col-sm-8">
+                                            <Select
+                                                name="form-field-name"
+                                                defaultValue={{label : formData.mappedName, value: formData.mappedId}}
+                                                onChange={onloadSelectMappedValues}
+                                                options={mapppedList}
+                                            />
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
                         </Grid>
                     </Grid>
+                    <br/>
                     <br />
                     <br />
-                    <br />
-
-                        <SKUEdit name={formData.product_id}/>
-                    <div className={classes.button} style={{marginTop:"50px"}}>
+                    <SKUEdit name={props.location.state.name.product_id} />
+                    <div className={classes.button} style={{ marginTop: "50px" }}>
                         <Button type="submit" variant="contained" color="primary">
                             Submit
                         </Button>
                     </div>
+                   {/* <div>
+                        <Dialog
+                            fullScreen={fullScreen}
+                            open={open}
+                            onClose={handleClose}
+                            aria-labelledby="responsive-dialog-title"
+                        >
+                            <DialogTitle id="responsive-dialog-title">
+                                {"Alert Message !! "}
+                            </DialogTitle>
+                            <DialogContent>
+                                <DialogContentText>
+                                    <WarningIcon color="secondary" fontSize="large" />
+                                Please fill the required fields
+                            </DialogContentText>
+                            </DialogContent>
 
+                            <DialogActions>
+                                <Button onClick={handleClose} variant="contained" color="primary" autoFocus>
+                                    OK
+                            </Button>
+                            </DialogActions>
+                        </Dialog>
+                   </div> */}
                 </ValidatorForm>
             </div>
         </div>

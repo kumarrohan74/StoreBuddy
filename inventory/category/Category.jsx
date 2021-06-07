@@ -41,6 +41,7 @@ const PrdoductCategory = () => {
     const history = useHistory();
     const [isLoading, setIsLoading] = React.useState(false);
     const [categoryData, setCategoryData] = React.useState([]);
+
     useEffect(() => {
         addingCategory = location.state;
         if ((location.state != null || location.state != undefined) && (addingCategory != null || addingCategory != undefined)) {
@@ -49,14 +50,13 @@ const PrdoductCategory = () => {
         const sendRequest = async () => {
             const response = await fetch(`${Config.baseURL}/v1/getcategory`);
             const responseData = await response.json();
-            if(JSON.stringify(responseData) !=JSON.stringify(categoryData))
-            {
+            if (JSON.stringify(responseData) != JSON.stringify(categoryData)) {
                 setCategoryData(responseData);
                 setIsLoading(true);
             }
             console.log(responseData);
         };
-       
+
         sendRequest();
     }, [location])
 
@@ -101,7 +101,8 @@ const PrdoductCategory = () => {
     const handleChange = (event) => {
         setSelectedValue(event.target.value);
         console.log(selectedValue)
-;    };
+            ;
+    };
 
     function onLoadcategoryAdd(event) {
         setAddCategoryform({
@@ -163,30 +164,28 @@ const PrdoductCategory = () => {
             }
             console.log(editvalue);
             imageValue = [];
-            const data = {editformData};
+            const data = { editformData };
             console.log(editformData);
             var fd_edit = new FormData();
-            fd_edit.append("categoryName",editformData.categoryName);
+            fd_edit.append("categoryName", editformData.categoryName);
             fd_edit.append("categoryDescription", editformData.categoryDescription);
             fd_edit.append("categoryPriority", editformData.categoryPriority);
             fd_edit.append("categoryImage", editformData.categoryImage);
-           
+
             fd_edit.append("categoryId", editformData.categoryId);
             fd_edit.append("isDelete", editformData.isDelete);
-            if (selectedValue == 1)
-            {
+            if (selectedValue == 1) {
                 fd_edit.append("categoryStatus", 1);
             }
-            else if(selectedValue == 0)
-            {
+            else if (selectedValue == 0) {
                 fd_edit.append("categoryStatus", 0);
             }
             const headers = {
                 "Access-Control-Allow-Origin": "*",
-              }
-             axios.post(`${Config.baseURL}/v1/editcategory`, fd_edit ,{headers}).then(() => {
-               console.log("sent");
-             }).catch(() => {
+            }
+            axios.post(`${Config.baseURL}/v1/editcategory`, fd_edit, { headers }).then(() => {
+                console.log("sent");
+            }).catch(() => {
                 console.log("Something went wrong. Plase try again later");
             });
             setEditDailogOpen(false);
@@ -204,15 +203,16 @@ const PrdoductCategory = () => {
         } else {
             const data = addCategoryform;
             var fd = new FormData();
-            fd.append("addcategoryName",addCategoryform.addcategoryName);
+            fd.append("addcategoryName", addCategoryform.addcategoryName);
             fd.append("addcategoryDescription", addCategoryform.addcategoryDescription);
             fd.append("addcategoryPriority", addCategoryform.addcategoryPriority);
             fd.append("categoryImage", addCategoryform.categoryImage);
+            console.log(fd);
             const headers = {
-            "Access-Control-Allow-Origin": "*",
-          }
-            axios.post(`${Config.baseURL}/v1/addcategory`, fd ,{headers}).then(() => {
-            console.log("sent");
+                "Access-Control-Allow-Origin": "*",
+            }
+            axios.post(`${Config.baseURL}/v1/addcategory`, fd, { headers }).then(() => {
+                console.log("sent");
             }).catch(() => {
                 console.log("Something went wrong. Plase try again later");
             });
@@ -221,22 +221,19 @@ const PrdoductCategory = () => {
         }
     }
 
-    function handleClickDelete(event,data)
-    {
+    function handleClickDelete(event, data) {
         event.isDelete = true;
-        const formdata = {editformData};
-        if (selectedValue.active == 1)
-        {
+        const formdata = { editformData };
+        if (selectedValue.active == 1) {
             event.categoryStatus = 1;
         }
-        else if(selectedValue.inactive == 0)
-        {
+        else if (selectedValue.inactive == 0) {
             event.categoryStatus = 0;
         }
         const headers = {
             "Access-Control-Allow-Origin": "*",
         }
-        axios.post(`${Config.baseURL}/v1/deletecategory`, event ,{headers}).then(() => {
+        axios.post(`${Config.baseURL}/v1/deletecategory`, event, { headers }).then(() => {
             console.log("sent");
         }).catch(() => {
             console.log("Something went wrong. Plase try again later");
@@ -249,13 +246,14 @@ const PrdoductCategory = () => {
 
     function onloadImageUpload(event) {
         imageValue = event[0].file;
-        console.log(event[0].file);
-        setAddCategoryform({...addCategoryform, categoryImage: event[0].file});
+        setAddCategoryform({ ...addCategoryform, categoryImage: event[0].file });
     }
 
     function onloadEditImageUpload(event) {
-        imageValue = event[0].file;
-        setEditformData({...editformData, categoryImage: event[0].file});
+        if (event.length !== 0) {
+            imageValue = event[0].file;
+            setEditformData({ ...editformData, categoryImage: event[0].file });
+        }
     }
 
     const data = categoryData;
@@ -268,7 +266,7 @@ const PrdoductCategory = () => {
             title: 'Name', field: 'category_name',
         },
         {
-            title: 'Image', field: 'category_image', render : rowData => <img src={`${Config.baseURL}/uploads/${rowData.category_image}`} style={{ width: 40, borderRadius: '50%' }} />
+            title: 'Image', field: 'category_image', render: rowData => <img src={`${Config.baseURL}/uploads/${rowData.category_image}`} style={{ width: 40, borderRadius: '50%' }} />
         },
         {
             title: 'Description', field: 'category_description',
@@ -460,7 +458,7 @@ const PrdoductCategory = () => {
                             <div className="col-sm-4">
                                 <label>Click or Drop here<sup>*</sup></label>
                                 <Paper component="form">
-                                    <ImageUpload onloadImageUpload={onloadEditImageUpload} />
+                                    <ImageUpload imgUrl="https://i.imgur.com/82TprkF.png" onloadImageUpload={onloadEditImageUpload} />
                                 </Paper>
                             </div>
                         </div>

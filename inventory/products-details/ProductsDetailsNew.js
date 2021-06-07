@@ -57,7 +57,6 @@ const PrdoductCategory = () => {
             {
                 setProductData(responseData);
             }
-           console.log(responseData);
         };
         sendRequest();
     },[Location]);
@@ -74,10 +73,6 @@ const PrdoductCategory = () => {
         data.isDelete = true;
        
         const formdata = {productData};
-        console.log("event");
-        console.log(event);
-        console.log(data);
-    
     const headers = {
         "Access-Control-Allow-Origin": "*",
       }
@@ -100,13 +95,13 @@ const PrdoductCategory = () => {
             title: 'Product name', field: 'product_name',
         },
         {
-            title: 'Category', field: 'category',
+            title: 'Category', field: 'category.categoryName',
         },
         {
-            title: 'Sub-category', field: 'sub_category',
+            title: 'Sub-category', field: 'sub_category.subCategoryName',
         },
         {
-            title: 'Brand', field: 'brand',
+            title: 'Brand', field: 'brand.brandName',
         },
         {
             title: 'Status', field: 'status',
@@ -129,8 +124,6 @@ const PrdoductCategory = () => {
             icon: 'edit',
             tooltip: 'edit Product',
             onClick: (event, rowData) => 
-            
-            // console.log(rowData)
 
 
         history.push({
